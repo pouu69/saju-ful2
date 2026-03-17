@@ -26,85 +26,126 @@ const TYPE_STYLES: Record<string, string> = {
   streaming: 'text-[#00dd38]',
 };
 
-/**
- * 텍스트에서 강조 패턴을 찾아 색상 처리한다.
- * - "따옴표" → 노란색 강조
- * - ━━━ 제목 ━━━ → 시안 강조
- * - ═══ 구분선 → 시안 강조
- * - 오행 한자 (木火土金水) → 각 오행 색상
- */
-function highlightText(text: string): ReactNode {
-  const parts: ReactNode[] = [];
-  let remaining = text;
-  let key = 0;
+// ── 하이라이트 패턴 정의 ──
 
-  while (remaining.length > 0) {
-    // "따옴표" 강조
-    const qReg = /^([\s\S]*?)\u201c([^\u201d]+)\u201d|^([\s\S]*?)"([^"]+)"/;
-    const quoteMatch = remaining.match(qReg);
-    if (quoteMatch) {
-      const before = quoteMatch[1] ?? quoteMatch[3] ?? '';
-      const word = quoteMatch[2] ?? quoteMatch[4] ?? '';
-      if (before) {
-        parts.push(<span key={key++}>{highlightSpecial(before)}</span>);
-      }
-      parts.push(
-        <span key={key++} className="text-[#ffcc00] terminal-glow-strong">
-          {'\u201c'}{word}{'\u201d'}
-        </span>
-      );
-      remaining = remaining.slice((before + '"' + word + '"').length);
-      continue;
-    }
+// "따옴표" 키워드 → 금색 강조
+// 오행 한자 패턴: 목(木), 화(火) 등 → 오행 색상
+// 오행 단독: 목, 화, 토, 금, 수 (단어 경계) → 오행 색상
+// 십성: 비견, 겁재, 식신 등 → 보라색
+// 음양: 양(陽), 음(陰) → 빨강/파랑
+// 구분선: ━━━, ═══ → 시안
+// 섹션 마커: ── 텍스트 ── → 시안
 
-    // 나머지는 특수 하이라이트만 적용
-    parts.push(<span key={key++}>{highlightSpecial(remaining)}</span>);
-    break;
+const ELEMENT_COLOR: Record<string, string> = {
+  '목': 'text-[#44cc44]', '木': 'text-[#44cc44]',
+  '화': 'text-[#ff5544]', '火': 'text-[#ff5544]',
+  '토': 'text-[#ccaa44]', '土': 'text-[#ccaa44]',
+  '금': 'text-[#dddddd]', '金': 'text-[#dddddd]',
+  '수': 'text-[#4488ff]', '水': 'text-[#4488ff]',
+};
+
+const TEN_GODS = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
+const TWELVE_STAGES = ['장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양'];
+
+// 메인 정규식: 우선순위대로 매칭
+const HIGHLIGHT_REGEX = new RegExp(
+  [
+    // 1. "따옴표" (스마트 따옴표 + 일반 따옴표)
+    '[\u201c"][^\u201d"]+[\u201d"]',
+    // 2. 오행 + 한자 괄호: 목(木)
+    '(?:목\\(木\\)|화\\(火\\)|토\\(土\\)|금\\(金\\)|수\\(水\\))',
+    // 3. 음양 + 한자: 양(陽), 음(陰)
+    '(?:양\\(陽\\)|음\\(陰\\))',
+    // 4. 십성 단어
+    `(?:${TEN_GODS.join('|')})`,
+    // 5. 12운성 (단어 경계 근사)
+    `(?:${TWELVE_STAGES.join('|')})`,
+    // 6. 구분선 / 섹션 마커
+    '(?:━+[^━]*━+|═{3,}|──[^─]+──)',
+    // 7. 한자 단독 (천간/지지): 甲乙丙丁戊己庚辛壬癸 子丑寅卯辰巳午未申酉戌亥
+    '[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]',
+  ].join('|'),
+  'g'
+);
+
+function getHighlightClass(match: string): string | null {
+  // 따옴표 키워드
+  if ((match.startsWith('\u201c') || match.startsWith('"')) && match.length > 2) {
+    return 'text-[#ffcc00] terminal-glow-strong';
   }
 
-  return parts.length === 1 ? parts[0] : <>{parts}</>;
+  // 오행 + 한자
+  if (match.includes('(木)') || match.includes('(火)') || match.includes('(土)') ||
+      match.includes('(金)') || match.includes('(水)')) {
+    const el = match[0];
+    return ELEMENT_COLOR[el] || null;
+  }
+
+  // 음양
+  if (match === '양(陽)') return 'text-[#ff6644]';
+  if (match === '음(陰)') return 'text-[#4488ff]';
+
+  // 십성
+  if (TEN_GODS.includes(match)) return 'text-[#cc88ff]';
+
+  // 12운성
+  if (TWELVE_STAGES.includes(match)) return 'text-[#88ccff]';
+
+  // 구분선 / 섹션
+  if (match.includes('━') || match.includes('═') || match.includes('──')) {
+    return 'text-[#00aaaa]';
+  }
+
+  // 한자 (천간/지지)
+  if (match.length === 1) {
+    const hanja = match;
+    // 천간 → 오행 매핑
+    const stemElement: Record<string, string> = {
+      '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
+      '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+    };
+    const branchElement: Record<string, string> = {
+      '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
+      '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수',
+    };
+    const el = stemElement[hanja] || branchElement[hanja];
+    if (el) return ELEMENT_COLOR[el] || null;
+  }
+
+  return null;
 }
 
-/**
- * 오행 한자, 구분선 등 특수 패턴 강조
- */
-function highlightSpecial(text: string): ReactNode {
+function highlightText(text: string): ReactNode {
   const parts: ReactNode[] = [];
-  // 오행 한자 + 괄호 패턴: 목(木), 화(火), 토(土), 금(金), 수(水)
-  const regex = /(목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\)|━+[^━]+━+|═{3,})/g;
-
   let lastIndex = 0;
+  let key = 0;
+
+  HIGHLIGHT_REGEX.lastIndex = 0;
   let match;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = HIGHLIGHT_REGEX.exec(text)) !== null) {
+    // 이전 텍스트
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
 
-    const m = match[0];
-    if (m.includes('목(木)')) {
-      parts.push(<span key={`s${match.index}`} className="text-[#44cc44]">{m}</span>);
-    } else if (m.includes('화(火)')) {
-      parts.push(<span key={`s${match.index}`} className="text-[#ff6644]">{m}</span>);
-    } else if (m.includes('토(土)')) {
-      parts.push(<span key={`s${match.index}`} className="text-[#ccaa44]">{m}</span>);
-    } else if (m.includes('금(金)')) {
-      parts.push(<span key={`s${match.index}`} className="text-[#dddddd]">{m}</span>);
-    } else if (m.includes('수(水)')) {
-      parts.push(<span key={`s${match.index}`} className="text-[#4488ff]">{m}</span>);
+    const cls = getHighlightClass(match[0]);
+    if (cls) {
+      parts.push(<span key={key++} className={cls}>{match[0]}</span>);
     } else {
-      // 구분선 (━━━, ═══)
-      parts.push(<span key={`s${match.index}`} className="text-[#00aaaa]">{m}</span>);
+      parts.push(match[0]);
     }
 
-    lastIndex = match.index + m.length;
+    lastIndex = match.index + match[0].length;
   }
 
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
 
-  return parts.length === 1 ? parts[0] : <>{parts}</>;
+  if (parts.length === 0) return text;
+  if (parts.length === 1 && typeof parts[0] === 'string') return text;
+  return <>{parts}</>;
 }
 
 export default function TerminalLine({ line, onTypingComplete }: TerminalLineProps) {
@@ -122,7 +163,6 @@ export default function TerminalLine({ line, onTypingComplete }: TerminalLinePro
     );
   }
 
-  // ascii, input 타입은 하이라이트 안함
   const skipHighlight = line.type === 'ascii' || line.type === 'input' || line.type === 'error';
 
   return (

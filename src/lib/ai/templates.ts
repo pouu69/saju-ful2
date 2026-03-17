@@ -59,18 +59,16 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
   switch (roomId) {
     case 'cave': {
       return [
-        `── ${name}의 사주 ──`,
+        `── 핵심 요약 ──`,
         '',
-        `그대의 일간은 ${dm.korean}${elName.hanja}(${yy}), 핵심 키워드는 "${personality.keyword}"이로다.`,
+        `일간: "${dm.korean}${elName.hanja}" · ${yy === '양' ? '양(陽)' : '음(陰)'} · "${personality.keyword}"`,
+        `${saju.dayPillar.branch.animal}띠 · ${elName.korean}(${elName.hanja})의 기운`,
+        '',
+        `── 세부 풀이 ──`,
         '',
         personality.desc,
         '',
-        `── 사주 네 기둥의 의미 ──`,
-        '',
-        `연주 — 조상과 사회적 환경을 나타냄`,
-        `월주 — 부모와 직업의 흐름을 보여줌`,
-        `일주 — 그대 자신과 배우자의 기운`,
-        `시주 — 자녀와 말년의 모습을 담음`,
+        `연주는 조상과 사회적 환경을, 월주는 부모와 직업의 흐름을, 일주는 그대 자신과 배우자의 기운을, 시주는 자녀와 말년의 모습을 담고 있느니라.`,
         '',
         `${yy === '양' ? '양(陽)의 기운이니 적극적이고 외향적인 면이 강하도다.' : '음(陰)의 기운이니 섬세하고 내면이 풍부한 성품이로다.'} 더 깊은 이야기는 각 방에서 들려주리라.`,
       ].join('\n');
@@ -81,17 +79,16 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
       const dom = ELEMENT_NAMES[fe.dominant];
       const def = ELEMENT_NAMES[fe.deficient];
       const domP = ELEMENT_PERSONALITY[fe.dominant];
-      const defP = ELEMENT_PERSONALITY[fe.deficient];
 
       return [
-        `── 오행 분석 결과 ──`,
+        `── 핵심 요약 ──`,
         '',
-        `가장 강한 기운: ${dom.korean}(${dom.hanja}) — "${domP.keyword}"`,
-        `가장 약한 기운: ${def.korean}(${def.hanja}) — "${defP.keyword}"`,
+        `강한 오행: "${dom.korean}(${dom.hanja})" · 약한 오행: "${def.korean}(${def.hanja})"`,
+        `성향 키워드: "${domP.keyword}"`,
+        '',
+        `── 세부 풀이 ──`,
         '',
         `${dom.korean}(${dom.hanja})이 강하니, ${domP.desc}`,
-        '',
-        `── 보완이 필요한 기운 ──`,
         '',
         `${def.korean}(${def.hanja})이 부족하니, ${ELEMENT_HEALTH[fe.deficient]}`,
         '',
@@ -112,39 +109,38 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
       const secInfo = second ? TEN_GOD_MEANINGS[second] : null;
 
       return [
-        `── 십성 분석 결과 ──`,
+        `── 핵심 요약 ──`,
         '',
-        `가장 두드러진 십성: "${dominant}" — ${domInfo?.keyword || ''}`,
+        `주요 십성: "${dominant}" · ${domInfo?.keyword || ''}`,
+        ...(second ? [`보조 십성: "${second}" · ${secInfo?.keyword || ''}`] : []),
         '',
-        domInfo?.desc || '',
+        `── 세부 풀이 ──`,
         '',
-        `이 기운이 그대의 직업과 인간관계에 깊은 영향을 미치고 있느니라.`,
+        `"${dominant}"의 기운이 가장 강하도다. ${domInfo?.desc || ''}`,
         '',
-        ...(secInfo ? [
-          `── 보조 십성 ──`,
-          '',
-          `"${second}" — ${secInfo.keyword}`,
-          secInfo.desc,
-          '',
-        ] : []),
-        `십성의 조화를 잘 살피면 그대의 길이 더욱 밝아지리라.`,
+        ...(secInfo ? [`"${second}"의 기운도 함께 작용하니, ${secInfo.desc}`, ''] : []),
+        `이 기운이 그대의 직업과 인간관계에 깊은 영향을 미치고 있느니라. 십성의 조화를 잘 살피면 그대의 길이 더욱 밝아지리라.`,
       ].join('\n');
     }
 
     case 'luck': {
-      const cycles = saju.luckCycles;
       const yl = saju.yearlyLuck;
       const currentAge = new Date().getFullYear() - saju.birthInfo.year;
-      const currentCycle = cycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
+      const currentCycle = saju.luckCycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
 
       return [
-        `── 대운 분석 결과 ──`,
+        `── 핵심 요약 ──`,
         '',
         currentCycle
-          ? `현재 ${currentAge}세, "${currentCycle.pillar.ganjiKorean}" 대운(${currentCycle.startAge}-${currentCycle.endAge}세)을 지나고 있도다. ${ELEMENT_NAMES[currentCycle.pillar.stem.element].korean}(${ELEMENT_NAMES[currentCycle.pillar.stem.element].hanja})의 흐름이 그대의 일상에 영향을 미치고 있느니라.`
-          : `아직 첫 대운이 시작되지 않았거나, 큰 전환의 시기에 서 있도다.`,
+          ? `현재 대운: "${currentCycle.pillar.ganjiKorean}" (${currentCycle.startAge}-${currentCycle.endAge}세) · ${ELEMENT_NAMES[currentCycle.pillar.stem.element].korean}(${ELEMENT_NAMES[currentCycle.pillar.stem.element].hanja})`
+          : `현재 대운: 전환기`,
+        `올해 세운: "${yl.pillar.ganjiKorean}" · ${ELEMENT_NAMES[yl.pillar.stem.element].korean}(${ELEMENT_NAMES[yl.pillar.stem.element].hanja})`,
         '',
-        `── 올해 세운 ──`,
+        `── 세부 풀이 ──`,
+        '',
+        currentCycle
+          ? `현재 ${currentAge}세, "${currentCycle.pillar.ganjiKorean}" 대운을 지나고 있도다. ${ELEMENT_NAMES[currentCycle.pillar.stem.element].korean}(${ELEMENT_NAMES[currentCycle.pillar.stem.element].hanja})의 흐름이 그대의 일상에 영향을 미치고 있느니라.`
+          : `아직 첫 대운이 시작되지 않았거나, 큰 전환의 시기에 서 있도다.`,
         '',
         `${yl.year}년은 "${yl.pillar.ganjiKorean}"의 해이니, ${ELEMENT_NAMES[yl.pillar.stem.element].korean}(${ELEMENT_NAMES[yl.pillar.stem.element].hanja})의 기운이 흐르는 해로다.`,
         '',
@@ -169,6 +165,13 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
       const currentCycle = saju.luckCycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
 
       return [
+        `── 핵심 요약 ──`,
+        '',
+        `일간: "${dm.korean}${elName.hanja}" · "${personality.keyword}"`,
+        `강한 오행: "${dom.korean}(${dom.hanja})" · 약한 오행: "${def.korean}(${def.hanja})"`,
+        `주요 십성: "${domGod}" · ${domGodInfo?.keyword || ''}`,
+        ...(currentCycle ? [`현재 대운: "${currentCycle.pillar.ganjiKorean}" (${currentCycle.startAge}-${currentCycle.endAge}세)`] : []),
+        '',
         `── ${name}에게 전하는 운명의 서 ──`,
         '',
         `그대의 일간은 "${dm.korean}${elName.hanja}" — ${personality.keyword}의 기운이로다.`,

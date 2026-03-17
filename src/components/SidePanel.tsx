@@ -8,13 +8,16 @@ export default function SidePanel() {
   return (
     <>
       {/* 토글 버튼 */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-3 right-3 z-50 w-8 h-8 flex items-center justify-center rounded border border-[#1a3a1a] bg-[#0a0a0a] text-[#00aa2a] hover:text-[#00ff41] hover:border-[#00aa2a] transition-colors text-sm"
-        aria-label={isOpen ? '도움말 닫기' : '도움말 열기'}
-      >
-        {isOpen ? '✕' : '?'}
-      </button>
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed top-4 right-4 z-50 px-3 py-1.5 flex items-center gap-1.5 rounded border border-[#00aa2a] bg-[#0a0a0a] text-[#00ff41] hover:bg-[#0f1a0f] hover:border-[#00ff41] transition-colors text-sm terminal-glow-strong"
+          aria-label="도움말 열기"
+        >
+          <span>?</span>
+          <span className="text-[12px] text-[#00aa2a]">도움말</span>
+        </button>
+      )}
 
       {/* 패널 */}
       <div
@@ -22,10 +25,19 @@ export default function SidePanel() {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="p-5 pt-14 h-full overflow-y-auto scrollbar-thin text-[13px] leading-relaxed font-['D2Coding',_monospace]">
-          <h2 className="text-[#00ff41] text-base mb-4 terminal-glow-strong">
-            사주명리의 미궁
-          </h2>
+        <div className="p-5 pt-5 h-full overflow-y-auto scrollbar-thin text-[13px] leading-relaxed font-['D2Coding',_monospace]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[#00ff41] text-base terminal-glow-strong">
+              사주명리의 미궁
+            </h2>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-7 h-7 flex items-center justify-center rounded border border-[#1a3a1a] text-[#00aa2a] hover:text-[#00ff41] hover:border-[#00aa2a] transition-colors text-sm"
+              aria-label="도움말 닫기"
+            >
+              ✕
+            </button>
+          </div>
 
           <Section title="사주 풀이란?">
             사주(四柱)는 태어난 연/월/일/시의 네 기둥으로 운명을 읽는 한국 전통 명리학입니다.

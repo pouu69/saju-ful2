@@ -40,9 +40,22 @@ export function getRoomPrompt(roomId: string, saju: SajuResult): string {
     .map(lc => `${lc.startAge}-${lc.endAge}세: ${lc.pillar.ganjiKorean}`)
     .join(', ');
 
+  const stagesStr = saju.twelveStages
+    .map(s => `${s.position}: ${s.stage}`)
+    .join(', ');
+
+  const sinsalStr = saju.sinsals.length > 0
+    ? saju.sinsals.map(s => `${s.name}(${s.description})`).join(', ')
+    : '특별한 신살 없음';
+
+  const gongmangStr = `공망 지지: ${saju.gongmang.branches.join(', ')}${saju.gongmang.affectedPillars.length > 0 ? `, 영향: ${saju.gongmang.affectedPillars.join(', ')}` : ''}`;
+
   switch (roomId) {
     case 'cave':
       return `${base}
+12운성: ${stagesStr}
+신살: ${sinsalStr}
+${gongmangStr}
 
 이 사람의 사주팔자를 처음으로 펼쳐보며 드라마틱하게 소개해주세요.
 각 기둥(연주/월주/일주/시주)이 무엇을 관장하는지 간단히 설명하고,

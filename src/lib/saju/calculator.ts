@@ -1,8 +1,10 @@
 import { calculateSaju } from '@fullstackfamily/manseryeok';
 import { HEAVENLY_STEMS, EARTHLY_BRANCHES, STEM_KOREAN_TO_INDEX, BRANCH_KOREAN_TO_INDEX } from './constants';
-import { Pillar, HeavenlyStem, EarthlyBranch, BirthInfo, SajuResult } from './types';
+import { Pillar, BirthInfo, SajuResult } from './types';
 import { calculateFiveElementBalance } from './elements';
 import { calculateTenGods } from './tenGods';
+import { calculateTwelveStages } from './twelveStages';
+import { calculateSinsals, calculateGongmang } from './sinsal';
 import { calculateLuckCycles, calculateYearlyLuck } from './luckCycles';
 
 /**
@@ -58,12 +60,21 @@ export function calculateFullSaju(birthInfo: BirthInfo): SajuResult {
   // 5. 십성 계산
   const tenGods = calculateTenGods(dayMaster, yearPillar, monthPillar, dayPillar, hourPillar);
 
-  // 6. 대운 계산
+  // 6. 12운성 계산
+  const twelveStages = calculateTwelveStages(dayMaster, yearPillar, monthPillar, dayPillar, hourPillar);
+
+  // 7. 신살 계산
+  const sinsals = calculateSinsals(yearPillar, monthPillar, dayPillar, hourPillar);
+
+  // 8. 공망 계산
+  const gongmang = calculateGongmang(dayPillar, yearPillar, monthPillar, hourPillar);
+
+  // 9. 대운 계산
   const luckCycles = calculateLuckCycles(
     gender, yearPillar, monthPillar, year, month, day
   );
 
-  // 7. 세운 (올해)
+  // 10. 세운 (올해)
   const yearlyLuck = calculateYearlyLuck(new Date().getFullYear());
 
   return {
@@ -75,6 +86,9 @@ export function calculateFullSaju(birthInfo: BirthInfo): SajuResult {
     dayMaster,
     fiveElements,
     tenGods,
+    twelveStages,
+    sinsals,
+    gongmang,
     luckCycles,
     yearlyLuck,
   };

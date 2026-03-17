@@ -69,6 +69,31 @@ export interface YearlyLuck {
   pillar: Pillar;
 }
 
+// 12운성 (Twelve Life Stages)
+export type TwelveStage =
+  | '장생' | '목욕' | '관대' | '건록' | '제왕'
+  | '쇠' | '병' | '사' | '묘' | '절'
+  | '태' | '양';
+
+// 12운성 결과 (각 기둥별)
+export interface TwelveStageEntry {
+  position: string;  // "연지", "월지", "일지", "시지"
+  stage: TwelveStage;
+}
+
+// 신살 (Special Indicators)
+export interface Sinsal {
+  name: string;      // 역마살, 도화살 등
+  description: string;
+  branches: string[]; // 해당하는 지지들
+}
+
+// 공망 (Empty/Void)
+export interface Gongmang {
+  branches: string[];  // 공망에 해당하는 지지 2개
+  affectedPillars: string[]; // 공망이 걸린 기둥 위치
+}
+
 // 성별
 export type Gender = 'male' | 'female';
 
@@ -93,6 +118,9 @@ export interface SajuResult {
   dayMaster: HeavenlyStem;
   fiveElements: FiveElementBalance;
   tenGods: TenGodEntry[];
+  twelveStages: TwelveStageEntry[];
+  sinsals: Sinsal[];
+  gongmang: Gongmang;
   luckCycles: LuckCycle[];
   yearlyLuck: YearlyLuck;
 }

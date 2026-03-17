@@ -96,6 +96,7 @@ export function useGame() {
   }, [addLine, appendToLine, streamInterpretation, showExits]);
 
   const moveToRoom = useCallback((roomId: RoomId) => {
+    clear();
     setCurrentRoom(roomId);
     const result = enterRoom(roomId);
 
@@ -135,7 +136,7 @@ export function useGame() {
     } else {
       showExits(roomId);
     }
-  }, [addLine, addLines, triggerAi, showExits, setCurrentRoom]);
+  }, [clear, addLine, addLines, triggerAi, showExits, setCurrentRoom]);
 
   const startGame = useCallback(() => {
     clear();

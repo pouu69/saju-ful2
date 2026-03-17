@@ -153,34 +153,35 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
       }
       const sorted = Object.entries(godCounts).sort((a, b) => b[1] - a[1]);
       const domGod = sorted[0]?.[0] || '비견';
+      const currentAge = new Date().getFullYear() - saju.birthInfo.year;
+      const currentCycle = saju.luckCycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
 
       return [
-        `═══════════════════════════════════════════════`,
-        `  ${name}의 사주, 종합 풀이`,
-        `═══════════════════════════════════════════════`,
+        `╔═══════════════════════════════════════════╗`,
+        `║                                           ║`,
+        `║     ${name}에게 전하는 운명의 서(書)      ║`,
+        `║                                           ║`,
+        `╚═══════════════════════════════════════════╝`,
         '',
-        `그대의 일간 ${dm.korean}${elName.hanja}를 중심으로 모든 기운을 종합하여 읽어보겠노라.`,
+        `모든 기운을 살펴보았노라. 이제 그대의 사주를 하나의 이야기로 엮어 들려주리라.`,
         '',
-        `━━━ 타고난 성품 ━━━`,
+        `그대의 일간은 "${dm.korean}${elName.hanja}"... ${ELEMENT_PERSONALITY[el]}`,
         '',
-        ELEMENT_PERSONALITY[el],
+        `그대의 사주에서 가장 눈에 띄는 것은 "${domGod}"의 기운이로다. ${TEN_GOD_MEANINGS[domGod] || ''} 이 기운이 그대의 삶 곳곳에 스며들어 있으니, 이를 잘 활용하는 것이 성공의 열쇠가 되리라.`,
         '',
-        `━━━ 강점 ━━━`,
+        `오행을 보면, ${dom.korean}(${dom.hanja})의 기운이 넘치고 ${def.korean}(${def.hanja})의 기운은 부족하도다. ${el === fe.dominant ? '일간과 같은 기운이 강하니 자아가 뚜렷하나, 자칫 독선에 빠지지 않도록 주의하시오.' : '일간을 보좌하는 기운이 풍부하니 좋은 환경이 따르지만, 스스로의 주체성을 잃지 마시오.'} ${ELEMENT_HEALTH[fe.deficient]}`,
         '',
-        `${dom.korean}(${dom.hanja})의 기운이 강하니, ${el === fe.dominant ? '일간의 기운과 같아 자아가 강하도다.' : '일간을 보좌하는 힘이 있도다.'} "${domGod}"의 십성이 두드러지니, ${TEN_GOD_MEANINGS[domGod]?.split('.')[0] || ''}.`,
+        currentCycle
+          ? `지금 그대는 ${currentAge}세, ${currentCycle.pillar.ganjiKorean}(${currentCycle.pillar.ganjiHanja}) 대운을 지나고 있도다. ${ELEMENT_NAMES[currentCycle.pillar.stem.element].korean}의 흐름이 그대의 일상에 영향을 미치고 있으니, 이 기운의 방향을 잘 살펴 순리에 따르시오.`
+          : `그대의 대운은 아직 본격적으로 시작되지 않았거나, 큰 전환의 시기에 서 있도다.`,
         '',
-        `━━━ 주의할 점 ━━━`,
+        `마지막으로 한마디 전하겠노라.`,
         '',
-        `${def.korean}(${def.hanja})의 기운이 부족하니, ${ELEMENT_HEALTH[fe.deficient]}`,
+        `${def.korean}의 기운을 채우고, ${dom.korean}의 기운을 다스리며, "${domGod}"가 가리키는 길을 따라가시오. 사주는 정해진 운명이 아니라, 그대가 자신을 이해하기 위한 지도이니라. 지도를 읽을 줄 아는 자만이 길을 선택할 수 있느니라.`,
         '',
-        `━━━ 인생의 방향 ━━━`,
-        '',
-        `대운의 흐름에 따라 때를 기다릴 줄 알고, 기회가 왔을 때 과감히 나아가시오. ${def.korean}의 기운을 보강하고, ${dom.korean}의 기운을 잘 다스리면, 그대의 운명은 더욱 빛나리라.`,
-        '',
-        `═══════════════════════════════════════════════`,
-        `  이것으로 풀이를 마치겠노라.`,
-        `  그대의 앞날에 빛이 함께하기를.`,
-        `═══════════════════════════════════════════════`,
+        `╔═══════════════════════════════════════════╗`,
+        `║  그대의 앞날에 빛이 함께하기를.           ║`,
+        `╚═══════════════════════════════════════════╝`,
       ].join('\n');
     }
 

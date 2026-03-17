@@ -1,4 +1,4 @@
-import { calculateSaju, getSolarTermsByYear } from '@fullstackfamily/manseryeok';
+import { calculateSaju } from '@fullstackfamily/manseryeok';
 import { HEAVENLY_STEMS, EARTHLY_BRANCHES, STEM_KOREAN_TO_INDEX, BRANCH_KOREAN_TO_INDEX } from './constants';
 import { Pillar, HeavenlyStem, EarthlyBranch, BirthInfo, SajuResult } from './types';
 import { calculateFiveElementBalance } from './elements';
@@ -59,9 +59,8 @@ export function calculateFullSaju(birthInfo: BirthInfo): SajuResult {
   const tenGods = calculateTenGods(dayMaster, yearPillar, monthPillar, dayPillar, hourPillar);
 
   // 6. 대운 계산
-  const solarTerms = getSolarTermsByYear(year);
   const luckCycles = calculateLuckCycles(
-    gender, yearPillar, monthPillar, year, month, day, solarTerms
+    gender, yearPillar, monthPillar, year, month, day
   );
 
   // 7. 세운 (올해)

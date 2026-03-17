@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Terminal from '@/components/terminal/Terminal';
 import { useGame } from '@/hooks/useGame';
 
 export default function Home() {
   const { lines, handleCommand, startGame, isStreaming } = useGame();
+  const initialized = useRef(false);
 
   useEffect(() => {
-    startGame();
+    if (!initialized.current) {
+      initialized.current = true;
+      startGame();
+    }
   }, [startGame]);
 
   return (

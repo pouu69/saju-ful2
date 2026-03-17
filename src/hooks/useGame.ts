@@ -137,7 +137,7 @@ export function useGame() {
 
   const startGame = useCallback(() => {
     clear();
-    addLines(TITLE_ART, 'ascii', 'text-[#00cccc]');
+    addLines(TITLE_ART, 'ascii', 'text-[#c4943a]');
     addLine('', 'text');
     addLine('  현자: "그대의 이름이 무엇인가?"', 'system');
     setPhase('name');

@@ -1,5 +1,6 @@
 import { SajuResult, FiveElement } from '../saju/types';
 import { ELEMENT_NAMES } from '../saju/constants';
+import { countTenGods, getCurrentLuckInfo } from '../saju/helpers';
 
 /** 오행별 성격 키워드 + 설명 */
 const ELEMENT_PERSONALITY: Record<FiveElement, { keyword: string; desc: string }> = {
@@ -97,12 +98,7 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
     }
 
     case 'tenGods': {
-      const gods = saju.tenGods;
-      const godCounts: Record<string, number> = {};
-      for (const g of gods) {
-        godCounts[g.name] = (godCounts[g.name] || 0) + 1;
-      }
-      const sorted = Object.entries(godCounts).sort((a, b) => b[1] - a[1]);
+      const sorted = countTenGods(saju.tenGods);
       const dominant = sorted[0]?.[0] || '비견';
       const domInfo = TEN_GOD_MEANINGS[dominant];
       const second = sorted.length > 1 ? sorted[1][0] : null;
@@ -125,8 +121,7 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
 
     case 'luck': {
       const yl = saju.yearlyLuck;
-      const currentAge = new Date().getFullYear() - saju.birthInfo.year;
-      const currentCycle = saju.luckCycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
+      const { currentAge, currentCycle } = getCurrentLuckInfo(saju);
 
       return [
         `── 핵심 요약 ──`,
@@ -153,16 +148,10 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult): str
       const dom = ELEMENT_NAMES[fe.dominant];
       const def = ELEMENT_NAMES[fe.deficient];
       const domP = ELEMENT_PERSONALITY[fe.dominant];
-      const gods = saju.tenGods;
-      const godCounts: Record<string, number> = {};
-      for (const g of gods) {
-        godCounts[g.name] = (godCounts[g.name] || 0) + 1;
-      }
-      const sorted = Object.entries(godCounts).sort((a, b) => b[1] - a[1]);
+      const sorted = countTenGods(saju.tenGods);
       const domGod = sorted[0]?.[0] || '비견';
       const domGodInfo = TEN_GOD_MEANINGS[domGod];
-      const currentAge = new Date().getFullYear() - saju.birthInfo.year;
-      const currentCycle = saju.luckCycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
+      const { currentAge, currentCycle } = getCurrentLuckInfo(saju);
 
       return [
         `── 핵심 요약 ──`,

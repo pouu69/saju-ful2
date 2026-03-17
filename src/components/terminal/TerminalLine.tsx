@@ -47,8 +47,16 @@ const ELEMENT_COLOR: Record<string, string> = {
 const TEN_GODS = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
 const TWELVE_STAGES = ['장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양'];
 
-// 메인 정규식: 우선순위대로 매칭
-const HIGHLIGHT_REGEX = new RegExp(
+// 한자 → 오행 매핑 (모듈 레벨 상수)
+const HANJA_TO_ELEMENT: Record<string, string> = {
+  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
+  '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+  '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
+  '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수',
+};
+
+// 메인 정규식 패턴 (matchAll용 - g flag 경합 없음)
+const HIGHLIGHT_PATTERN = new RegExp(
   [
     // 1. "따옴표" (스마트 따옴표 + 일반 따옴표)
     '[\u201c"][^\u201d"]+[\u201d"]',
@@ -98,17 +106,7 @@ function getHighlightClass(match: string): string | null {
 
   // 한자 (천간/지지)
   if (match.length === 1) {
-    const hanja = match;
-    // 천간 → 오행 매핑
-    const stemElement: Record<string, string> = {
-      '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
-      '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
-    };
-    const branchElement: Record<string, string> = {
-      '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
-      '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수',
-    };
-    const el = stemElement[hanja] || branchElement[hanja];
+    const el = HANJA_TO_ELEMENT[match];
     if (el) return ELEMENT_COLOR[el] || null;
   }
 
@@ -120,10 +118,9 @@ function highlightText(text: string): ReactNode {
   let lastIndex = 0;
   let key = 0;
 
-  HIGHLIGHT_REGEX.lastIndex = 0;
-  let match;
+  const matches = text.matchAll(HIGHLIGHT_PATTERN);
 
-  while ((match = HIGHLIGHT_REGEX.exec(text)) !== null) {
+  for (const match of matches) {
     // 이전 텍스트
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));

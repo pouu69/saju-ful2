@@ -1,5 +1,7 @@
 import { SajuResult, FiveElement } from '@/lib/saju/types';
 import { ELEMENT_NAMES } from '@/lib/saju/constants';
+import { countTenGods, getCurrentLuckInfo } from '@/lib/saju/helpers';
+import { padKr } from '@/lib/utils/string';
 
 /** 색상 포함 라인 */
 export interface ChartLine {
@@ -116,7 +118,7 @@ export function generateTenGodsChart(saju: SajuResult): ChartLine[] {
  */
 export function generateLuckTimeline(saju: SajuResult): ChartLine[] {
   const cycles = saju.luckCycles;
-  const currentAge = new Date().getFullYear() - saju.birthInfo.year;
+  const { currentAge } = getCurrentLuckInfo(saju);
   const yl = saju.yearlyLuck;
 
   const lines: ChartLine[] = [
@@ -170,14 +172,10 @@ export function generateSynthesisCard(saju: SajuResult): ChartLine[] {
   const domEl = ELEMENT_NAMES[fe.dominant];
   const defEl = ELEMENT_NAMES[fe.deficient];
 
-  const godCounts: Record<string, number> = {};
-  for (const g of saju.tenGods) {
-    godCounts[g.name] = (godCounts[g.name] || 0) + 1;
-  }
-  const topGod = Object.entries(godCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+  const sorted = countTenGods(saju.tenGods);
+  const topGod = sorted[0]?.[0] || '-';
 
-  const currentAge = new Date().getFullYear() - saju.birthInfo.year;
-  const currentCycle = saju.luckCycles.find(c => currentAge >= c.startAge && currentAge <= c.endAge);
+  const { currentAge, currentCycle } = getCurrentLuckInfo(saju);
 
   const lines: ChartLine[] = [
     { text: '' },
@@ -213,21 +211,3 @@ export function generateSynthesisCard(saju: SajuResult): ChartLine[] {
   return lines;
 }
 
-/** 한글 포함 문자열 패딩 */
-function padKr(str: string, width: number): string {
-  let len = 0;
-  for (const char of str) {
-    const code = char.charCodeAt(0);
-    if (
-      (code >= 0xAC00 && code <= 0xD7AF) ||
-      (code >= 0x4E00 && code <= 0x9FFF) ||
-      (code >= 0x3400 && code <= 0x4DBF) ||
-      (code >= 0xFF00 && code <= 0xFFEF)
-    ) {
-      len += 2;
-    } else {
-      len += 1;
-    }
-  }
-  return str + ' '.repeat(Math.max(0, width - len));
-}

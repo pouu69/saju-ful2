@@ -1,3 +1,5 @@
+import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { SYSTEM_PROMPT, getRoomPrompt } from '@/lib/ai/prompts';
 import { getTemplateInterpretation } from '@/lib/ai/templates';
 import { SajuResult } from '@/lib/saju/types';
@@ -8,21 +10,29 @@ const SSE_HEADERS = {
   'Connection': 'keep-alive',
 };
 
+const encoder = new TextEncoder();
+
 function sseEncode(text: string): Uint8Array {
-  return new TextEncoder().encode(`data: ${JSON.stringify({ text })}\n\n`);
+  return encoder.encode(`data: ${JSON.stringify({ text })}\n\n`);
 }
 
 function sseDone(): Uint8Array {
-  return new TextEncoder().encode('data: [DONE]\n\n');
+  return encoder.encode('data: [DONE]\n\n');
 }
 
 function sseError(msg: string): Uint8Array {
-  return new TextEncoder().encode(`data: ${JSON.stringify({ error: msg })}\n\n`);
+  return encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`);
 }
 
-/**
- * 템플릿 폴백: 글자 단위로 스트리밍 흉내
- */
+// SDK 싱글톤 (모듈 레벨에서 한 번만 생성)
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
+
+const gemini = process.env.GEMINI_API_KEY
+  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  : null;
+
 function streamTemplate(text: string): ReadableStream {
   const chunks = text.split('\n');
   return new ReadableStream({
@@ -37,14 +47,8 @@ function streamTemplate(text: string): ReadableStream {
   });
 }
 
-/**
- * OpenAI 스트리밍
- */
 async function streamOpenAI(userPrompt: string): Promise<ReadableStream> {
-  const OpenAI = (await import('openai')).default;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-  const stream = await openai.chat.completions.create({
+  const stream = await openai!.chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     max_tokens: 1024,
     stream: true,
@@ -71,14 +75,8 @@ async function streamOpenAI(userPrompt: string): Promise<ReadableStream> {
   });
 }
 
-/**
- * Gemini 스트리밍
- */
 async function streamGemini(userPrompt: string): Promise<ReadableStream> {
-  const { GoogleGenAI } = await import('@google/genai');
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-
-  const stream = ai.models.generateContentStream({
+  const stream = gemini!.models.generateContentStream({
     model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
     contents: [
       { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${userPrompt}` }] },
@@ -112,12 +110,11 @@ export async function POST(request: Request) {
 
   let body: ReadableStream;
 
-  if (process.env.OPENAI_API_KEY) {
+  if (openai) {
     body = await streamOpenAI(userPrompt);
-  } else if (process.env.GEMINI_API_KEY) {
+  } else if (gemini) {
     body = await streamGemini(userPrompt);
   } else {
-    // 템플릿 폴백
     const templateText = getTemplateInterpretation(roomId, sajuResult);
     body = streamTemplate(templateText);
   }

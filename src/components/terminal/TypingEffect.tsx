@@ -13,6 +13,8 @@ export default function TypingEffect({ text, speed = 30, onComplete, className }
   const [displayed, setDisplayed] = useState('');
   const indexRef = useRef(0);
   const completedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     indexRef.current = 0;
@@ -27,13 +29,13 @@ export default function TypingEffect({ text, speed = 30, onComplete, className }
         clearInterval(timer);
         if (!completedRef.current) {
           completedRef.current = true;
-          onComplete?.();
+          onCompleteRef.current?.();
         }
       }
     }, speed);
 
     return () => clearInterval(timer);
-  }, [text, speed, onComplete]);
+  }, [text, speed]);
 
   const showCursor = indexRef.current <= text.length;
 

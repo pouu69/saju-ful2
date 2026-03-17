@@ -1,5 +1,6 @@
 import { SajuResult } from '@/lib/saju/types';
 import { ELEMENT_NAMES } from '@/lib/saju/constants';
+import { getDisplayWidth, padKr } from '@/lib/utils/string';
 
 /**
  * 사주팔자 + 12운성을 ASCII 테이블 문자열 배열로 생성한다.
@@ -73,25 +74,5 @@ export function generatePillarLines(saju: SajuResult): string[] {
 }
 
 function fmt(s: string, w: number = 8): string {
-  const len = getDisplayWidth(s);
-  const pad = Math.max(0, w - len);
-  return s + ' '.repeat(pad);
-}
-
-function getDisplayWidth(str: string): number {
-  let width = 0;
-  for (const char of str) {
-    const code = char.charCodeAt(0);
-    if (
-      (code >= 0xAC00 && code <= 0xD7AF) ||
-      (code >= 0x4E00 && code <= 0x9FFF) ||
-      (code >= 0x3400 && code <= 0x4DBF) ||
-      (code >= 0xFF00 && code <= 0xFFEF)
-    ) {
-      width += 2;
-    } else {
-      width += 1;
-    }
-  }
-  return width;
+  return padKr(s, w);
 }

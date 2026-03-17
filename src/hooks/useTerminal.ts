@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { LineData } from '@/components/terminal/TerminalLine';
 
 let lineCounter = 0;
@@ -11,6 +11,10 @@ function nextId(): string {
 export function useTerminal() {
   const [lines, setLines] = useState<LineData[]>([]);
 
+  // useRef로 감싸서 콜백 안정성 확보 (의존성 체인 무한루프 방지)
+  const setLinesRef = useRef(setLines);
+  setLinesRef.current = setLines;
+
   const addLine = useCallback((text: string, type: LineData['type'] = 'text', options?: { color?: string; typing?: boolean }) => {
     const line: LineData = {
       id: nextId(),
@@ -19,7 +23,7 @@ export function useTerminal() {
       color: options?.color,
       typing: options?.typing,
     };
-    setLines(prev => [...prev, line]);
+    setLinesRef.current(prev => [...prev, line]);
     return line.id;
   }, []);
 
@@ -30,11 +34,11 @@ export function useTerminal() {
       type,
       color,
     }));
-    setLines(prev => [...prev, ...newLines]);
+    setLinesRef.current(prev => [...prev, ...newLines]);
   }, []);
 
   const appendToLine = useCallback((lineId: string, text: string) => {
-    setLines(prev =>
+    setLinesRef.current(prev =>
       prev.map(line =>
         line.id === lineId ? { ...line, text: line.text + text } : line
       )
@@ -42,7 +46,7 @@ export function useTerminal() {
   }, []);
 
   const clear = useCallback(() => {
-    setLines([]);
+    setLinesRef.current([]);
     lineCounter = 0;
   }, []);
 

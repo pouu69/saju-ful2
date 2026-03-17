@@ -14,31 +14,8 @@ import { BirthInfo, SajuResult } from '@/lib/saju/types';
 
 const TITLE_ART = [
   '',
-  '',
-  '           ░█▀▀░█▀█░░▀░░█░█',
-  '           ░▀▀█░█▀█░░█░░█░█',
-  '           ░▀▀▀░▀░▀░▀▀▀░▀▀▀',
-  '',
-  '      ─ ─ ─  사 주 명 리 의  미 궁  ─ ─ ─',
-  '          L a b y r i n t h  o f',
-  '           F o u r  P i l l a r s',
-  '',
-  '          ☰  천간  ☷  지지  ☲  오행',
-  '',
-];
-
-const INTRO_LINES = [
-  '  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-  '',
-  '  어둠 속에서 은은한 빛이 당신을 이끕니다...',
-  '',
-  '  오래된 동굴 입구, 향 연기가 피어오르고',
-  '  벽면에 새겨진 천간과 지지의 문양이',
-  '  희미하게 빛나고 있습니다.',
-  '',
-  '  그 앞에 백발의 현자가 조용히 앉아 있습니다.',
-  '',
-  '  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+  '  ☰ 사주명리의 미궁 ☷ ─────────── Labyrinth of Four Pillars ──',
+  '  어둠 속, 백발의 현자가 동굴 입구에서 기다리고 있습니다...',
 ];
 
 export function useGame() {
@@ -148,7 +125,6 @@ export function useGame() {
   const startGame = useCallback(() => {
     clear();
     addLines(TITLE_ART, 'ascii', 'text-[#00cccc]');
-    addLines(INTRO_LINES, 'text', 'text-[#00aa2a]');
     addLine('', 'text');
     addLine('  현자: "그대의 이름이 무엇인가?"', 'system');
     setPhase('name');

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Terminal from '@/components/terminal/Terminal';
+import SidePanel from '@/components/SidePanel';
 import { useGame } from '@/hooks/useGame';
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
         inputDisabled={isStreaming}
         inputPrompt=">"
       />
+      <SidePanel />
     </main>
   );
 }

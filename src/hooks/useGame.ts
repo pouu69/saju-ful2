@@ -33,6 +33,7 @@ export function useGame() {
   const [, forceRender] = useState(0);
   const sajuRef = useRef<SajuResult | null>(null);
   const birthInfoRef = useRef<Partial<BirthInfo>>({});
+  const aiCacheRef = useRef<Record<string, string>>({});
 
   const setPhase = useCallback((p: GamePhase) => {
     phaseRef.current = p;
@@ -54,14 +55,31 @@ export function useGame() {
   const triggerAi = useCallback((roomId: RoomId) => {
     if (!sajuRef.current) return;
 
+    // 캐시된 AI 응답이 있으면 바로 출력
+    const cached = aiCacheRef.current[roomId];
+    if (cached) {
+      addLine('');
+      addLine(cached, 'streaming');
+      showExits(roomId);
+      return;
+    }
+
+    // 새 요청: 스트리밍하면서 캐시에 축적
     addLine('');
     const streamLineId = addLine('', 'streaming');
+    let fullText = '';
 
     streamInterpretation(
       roomId,
       sajuRef.current,
-      (chunk) => appendToLine(streamLineId, chunk),
-      () => showExits(roomId),
+      (chunk) => {
+        fullText += chunk;
+        appendToLine(streamLineId, chunk);
+      },
+      () => {
+        aiCacheRef.current[roomId] = fullText;
+        showExits(roomId);
+      },
       (error) => {
         addLine(`  오류: ${error}`, 'error');
         showExits(roomId);
@@ -120,6 +138,7 @@ export function useGame() {
     setCurrentRoom('entrance');
     sajuRef.current = null;
     birthInfoRef.current = {};
+    aiCacheRef.current = {};
   }, [clear, addLines, addLine, setPhase, setCurrentRoom]);
 
   const handleCommand = useCallback((input: string) => {

@@ -37,20 +37,29 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
   }
 
   return (
-    <div className="flex items-center text-[#00ff41] py-1">
-      <span className="text-[#cccc00] mr-2 terminal-glow-strong">{prompt}</span>
+    <div
+      className="relative py-1 cursor-text"
+      onClick={() => inputRef.current?.focus({ preventScroll: true })}
+    >
+      {/* 보이는 텍스트 + 커서 */}
+      <div className="flex items-center text-[#00ff41]">
+        <span className="text-[#cccc00] mr-2 terminal-glow-strong">{prompt}</span>
+        <span className="text-[#e8e8e8] whitespace-pre">{value}</span>
+        <span className="terminal-cursor">▌</span>
+      </div>
+
+      {/* 숨겨진 실제 input */}
       <input
         ref={inputRef}
         type="text"
         value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="bg-transparent border-none outline-none text-[#e8e8e8] flex-1 caret-[#00ff41] font-inherit"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-text"
         autoFocus
         autoComplete="off"
         spellCheck={false}
       />
-      <span className="terminal-cursor">▌</span>
     </div>
   );
 }

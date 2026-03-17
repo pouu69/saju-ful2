@@ -188,12 +188,14 @@ export function useGame() {
 
         const result = executeCommand(command, currentRoom);
 
-        for (const line of result.lines) {
-          addLine(line.text, line.type as 'text', { color: line.color });
-        }
-
         if (result.newRoom && result.newRoom !== currentRoom) {
+          // 방 이동: moveToRoom이 방 설명 + AI + 출구를 처리
           moveToRoom(result.newRoom);
+        } else {
+          // 이동 아닌 커맨드 (help, look, unknown 등): 결과만 출력
+          for (const line of result.lines) {
+            addLine(line.text, line.type as 'text', { color: line.color });
+          }
         }
         break;
       }

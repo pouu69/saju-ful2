@@ -2,14 +2,7 @@
 
 MUD 게임 스타일의 한국 전통 사주풀이(명리학) 웹 서비스.
 
-```
-╔═══════════════════════════════════════╗
-║                                       ║
-║    사 주 명 리 의   미 궁             ║
-║    Labyrinth of Four Pillars          ║
-║                                       ║
-╚═══════════════════════════════════════╝
-```
+![사주명리의 미궁 스크린샷](screenshot.png)
 
 ## 소개
 
@@ -21,10 +14,13 @@ MUD 게임 스타일의 한국 전통 사주풀이(명리학) 웹 서비스.
 - **사주팔자 계산** - 만세력 기반 연주/월주/일주/시주 계산
 - **오행 분석** - 오행(木火土金水) 균형과 강약 분석
 - **십성 해석** - 비견, 식신, 편재, 정관 등 10가지 관계 분석
+- **십이운성** - 장생, 목욕, 관대 등 12단계 생명주기 분석
+- **신살 해석** - 천을귀인, 역마살, 도화살 등 신살 분석
 - **대운/세운** - 10년 단위 대운 흐름과 올해 세운 해석
 - **종합 풀이** - 모든 분석을 종합한 그랜드 피날레
-- **MUD 탐험** - 방 이동, 커맨드 입력, 터미널 UI
-- **AI 해석** - OpenAI / Gemini 스트리밍 (키 없으면 템플릿 폴백)
+- **MUD 탐험** - 방 이동, 커맨드 입력, 터미널 UI + 사이드 패널
+- **오행 차트** - 오행별 색상 구분 시각화 차트
+- **AI 해석** - OpenAI / Gemini SSE 스트리밍 (키 없으면 템플릿 폴백)
 
 ## 실행
 
@@ -71,22 +67,8 @@ GEMINI_MODEL=gemini-2.0-flash
 
 ## 기술 스택
 
-- **Next.js 15** (App Router) + TypeScript
-- **Tailwind CSS** - 터미널 테마, CRT 스캔라인 효과
+- **Next.js 16** (App Router) + **React 19** + TypeScript
+- **Tailwind CSS v4** - 터미널 테마, CRT 스캔라인 효과
 - **@fullstackfamily/manseryeok** - 만세력 사주 계산
-- **OpenAI / Google Gemini** - AI 스트리밍 해석
+- **OpenAI SDK** / **@google/genai** - AI SSE 스트리밍 해석
 - **D2Coding** - 한국어 모노스페이스 폰트
-
-## 프로젝트 구조
-
-```
-src/
-├── app/                    # Next.js 페이지 + API
-├── components/terminal/    # 터미널 UI 컴포넌트
-├── components/saju/        # 사주 ASCII 표시
-├── hooks/                  # useGame, useTerminal, useStreaming
-└── lib/
-    ├── saju/               # 사주 계산 엔진 (팔자, 오행, 십성, 대운)
-    ├── mud/                # MUD 게임 엔진 (방, 커맨드, 엔진)
-    └── ai/                 # AI 프롬프트 + 템플릿 폴백
-```

@@ -14,7 +14,7 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
 
   useEffect(() => {
     if (!disabled) {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }
   }, [disabled]);
 

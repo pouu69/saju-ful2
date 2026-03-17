@@ -32,7 +32,7 @@ export default function Terminal({
 
   const handleClick = () => {
     const input = scrollRef.current?.querySelector('input');
-    input?.focus();
+    input?.focus({ preventScroll: true });
   };
 
   return (

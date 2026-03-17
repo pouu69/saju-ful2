@@ -45,14 +45,17 @@ export function getExitLines(roomId: RoomId): OutputLine[] {
 
   const lines: OutputLine[] = [
     text(''),
-    text('  출구:', 'text-gray-400'),
+    text('  ─────────────────────────────', 'text-[#1a3a1a]'),
+    text('  어디로 가시겠습니까?', 'text-[#00aa2a]'),
+    text(''),
   ];
 
   room.exits.forEach((exit, i) => {
-    lines.push(text(`    [${exit.direction}] ${exit.label}  (${i + 1})`, 'text-yellow-400'));
+    lines.push(text(`    ${i + 1}. ${exit.label}`, 'text-yellow-400'));
   });
 
   lines.push(text(''));
+  lines.push(text('  번호를 입력하세요. (도움: 명령어 목록)', 'text-[#00aa2a]'));
   return lines;
 }
 

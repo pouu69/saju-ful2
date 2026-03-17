@@ -9,6 +9,7 @@ import { enterRoom, executeCommand, getExitLines } from '@/lib/mud/engine';
 import { ROOMS } from '@/lib/mud/rooms';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generatePillarLines } from '@/components/saju/PillarDisplay';
+import { generateElementChart, generateTenGodsChart, generateLuckTimeline, generateSynthesisCard } from '@/components/saju/Charts';
 import { BirthInfo, SajuResult } from '@/lib/saju/types';
 
 const TITLE_ART = [
@@ -76,9 +77,29 @@ export function useGame() {
       addLine(line.text, line.type as 'text', { color: line.color });
     }
 
-    if (roomId === 'cave' && sajuRef.current) {
-      const pillarLines = generatePillarLines(sajuRef.current);
-      addLines(pillarLines, 'ascii', 'text-yellow-300');
+    // 각 방별 시각적 차트 표시
+    if (sajuRef.current) {
+      let chartLines: string[] = [];
+      switch (roomId) {
+        case 'cave':
+          chartLines = generatePillarLines(sajuRef.current);
+          break;
+        case 'elements':
+          chartLines = generateElementChart(sajuRef.current);
+          break;
+        case 'tenGods':
+          chartLines = generateTenGodsChart(sajuRef.current);
+          break;
+        case 'luck':
+          chartLines = generateLuckTimeline(sajuRef.current);
+          break;
+        case 'synthesis':
+          chartLines = generateSynthesisCard(sajuRef.current);
+          break;
+      }
+      if (chartLines.length > 0) {
+        addLines(chartLines, 'ascii', 'text-yellow-300');
+      }
     }
 
     if (result.requestAi) {

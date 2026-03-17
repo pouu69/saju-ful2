@@ -9,7 +9,7 @@ import { enterRoom, executeCommand, getExitLines } from '@/lib/mud/engine';
 import { ROOMS } from '@/lib/mud/rooms';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generatePillarLines } from '@/components/saju/PillarDisplay';
-import { generateElementChart, generateTenGodsChart, generateLuckTimeline, generateSynthesisCard } from '@/components/saju/Charts';
+import { generateElementChart, generateTenGodsChart, generateLuckTimeline, generateSynthesisCard, ChartLine } from '@/components/saju/Charts';
 import { BirthInfo, SajuResult } from '@/lib/saju/types';
 
 const TITLE_ART = [
@@ -105,26 +105,28 @@ export function useGame() {
 
     // 각 방별 시각적 차트 표시
     if (sajuRef.current) {
-      let chartLines: string[] = [];
-      switch (roomId) {
-        case 'cave':
-          chartLines = generatePillarLines(sajuRef.current);
-          break;
-        case 'elements':
-          chartLines = generateElementChart(sajuRef.current);
-          break;
-        case 'tenGods':
-          chartLines = generateTenGodsChart(sajuRef.current);
-          break;
-        case 'luck':
-          chartLines = generateLuckTimeline(sajuRef.current);
-          break;
-        case 'synthesis':
-          chartLines = generateSynthesisCard(sajuRef.current);
-          break;
-      }
-      if (chartLines.length > 0) {
-        addLines(chartLines, 'ascii', 'text-yellow-300');
+      if (roomId === 'cave') {
+        const pillarLines = generatePillarLines(sajuRef.current);
+        addLines(pillarLines, 'ascii', 'text-yellow-300');
+      } else {
+        let chartLines: ChartLine[] = [];
+        switch (roomId) {
+          case 'elements':
+            chartLines = generateElementChart(sajuRef.current);
+            break;
+          case 'tenGods':
+            chartLines = generateTenGodsChart(sajuRef.current);
+            break;
+          case 'luck':
+            chartLines = generateLuckTimeline(sajuRef.current);
+            break;
+          case 'synthesis':
+            chartLines = generateSynthesisCard(sajuRef.current);
+            break;
+        }
+        for (const line of chartLines) {
+          addLine(line.text, 'ascii', { color: line.color || 'text-yellow-300' });
+        }
       }
     }
 

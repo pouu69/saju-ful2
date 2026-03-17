@@ -19,6 +19,8 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
   }, [disabled]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // 한글 IME 조합 중이면 무시 (조합 완료 후 처리)
+    if (e.nativeEvent.isComposing) return;
     if (e.key === 'Enter' && value.trim()) {
       onSubmit(value.trim());
       setValue('');

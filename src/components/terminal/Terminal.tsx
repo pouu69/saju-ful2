@@ -23,42 +23,55 @@ export default function Terminal({
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }, [lines]);
 
   const handleClick = () => {
-    // 터미널 아무 곳 클릭 시 input 포커스
     const input = scrollRef.current?.querySelector('input');
     input?.focus();
   };
 
   return (
-    <div
-      className="relative w-full h-screen bg-[#0a0a0a] overflow-hidden font-mono cursor-text"
-      onClick={handleClick}
-    >
-      {/* CRT 스캔라인 효과 */}
-      <div className="pointer-events-none absolute inset-0 z-10 crt-scanlines" />
+    <div className="crt-monitor" onClick={handleClick}>
+      <div className="crt-screen">
+        {/* CRT 오버레이 레이어 */}
+        <div className="pointer-events-none absolute inset-0 z-20 crt-scanlines" />
+        <div className="pointer-events-none absolute inset-0 z-20 crt-vignette" />
+        <div className="pointer-events-none absolute inset-0 z-20 crt-noise" />
 
-      {/* 터미널 내용 */}
-      <div
-        ref={scrollRef}
-        className="h-full overflow-y-auto p-4 pb-20 scrollbar-thin scrollbar-thumb-green-900"
-      >
-        {lines.map(line => (
-          <TerminalLine
-            key={line.id}
-            line={line}
-            onTypingComplete={() => onTypingComplete?.(line.id)}
-          />
-        ))}
+        {/* 화면 상단 바 */}
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-[#1a3a1a] bg-[#060806]">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#00ff41] opacity-60" />
+          <span className="text-[11px] text-[#00aa2a] tracking-wider uppercase">
+            사주명리 MUD v1.0
+          </span>
+        </div>
 
-        <TerminalInput
-          onSubmit={onCommand}
-          disabled={inputDisabled}
-          prompt={inputPrompt}
-        />
+        {/* 터미널 내용 */}
+        <div
+          ref={scrollRef}
+          className="terminal-content terminal-glow h-[calc(100%-36px)] overflow-y-auto p-5 pb-24 scrollbar-thin scroll-smooth cursor-text"
+        >
+          {lines.map(line => (
+            <TerminalLine
+              key={line.id}
+              line={line}
+              onTypingComplete={() => onTypingComplete?.(line.id)}
+            />
+          ))}
+
+          <div className="input-line">
+            <TerminalInput
+              onSubmit={onCommand}
+              disabled={inputDisabled}
+              prompt={inputPrompt}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -19,7 +19,6 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
   }, [disabled]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    // 한글 IME 조합 중이면 무시 (조합 완료 후 처리)
     if (e.nativeEvent.isComposing) return;
     if (e.key === 'Enter' && value.trim()) {
       onSubmit(value.trim());
@@ -27,23 +26,31 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
     }
   };
 
-  if (disabled) return null;
+  if (disabled) {
+    return (
+      <div className="flex items-center text-[#00aa2a] opacity-50 py-1">
+        <span className="mr-2">{prompt}</span>
+        <span className="terminal-cursor">_</span>
+        <span className="ml-2 text-[11px] tracking-wider">(처리 중...)</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex items-center text-green-400">
-      <span className="text-yellow-400 mr-2">{prompt}</span>
+    <div className="flex items-center text-[#00ff41] py-1">
+      <span className="text-[#cccc00] mr-2 terminal-glow-strong">{prompt}</span>
       <input
         ref={inputRef}
         type="text"
         value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="bg-transparent border-none outline-none text-white flex-1 caret-green-400"
+        className="bg-transparent border-none outline-none text-[#e8e8e8] flex-1 caret-[#00ff41] font-inherit"
         autoFocus
         autoComplete="off"
         spellCheck={false}
       />
-      <span className="animate-pulse text-green-400">▌</span>
+      <span className="terminal-cursor">▌</span>
     </div>
   );
 }

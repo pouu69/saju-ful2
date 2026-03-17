@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 
 interface TypingEffectProps {
   text: string;
-  speed?: number;   // ms per character
+  speed?: number;
   onComplete?: () => void;
   className?: string;
 }
@@ -12,9 +12,11 @@ interface TypingEffectProps {
 export default function TypingEffect({ text, speed = 30, onComplete, className }: TypingEffectProps) {
   const [displayed, setDisplayed] = useState('');
   const indexRef = useRef(0);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     indexRef.current = 0;
+    completedRef.current = false;
     setDisplayed('');
 
     const timer = setInterval(() => {
@@ -23,12 +25,22 @@ export default function TypingEffect({ text, speed = 30, onComplete, className }
         setDisplayed(text.slice(0, indexRef.current));
       } else {
         clearInterval(timer);
-        onComplete?.();
+        if (!completedRef.current) {
+          completedRef.current = true;
+          onComplete?.();
+        }
       }
     }, speed);
 
     return () => clearInterval(timer);
   }, [text, speed, onComplete]);
 
-  return <span className={className}>{displayed}<span className="animate-pulse">▌</span></span>;
+  const showCursor = indexRef.current <= text.length;
+
+  return (
+    <span className={className}>
+      {displayed}
+      {showCursor && <span className="terminal-cursor">▌</span>}
+    </span>
+  );
 }

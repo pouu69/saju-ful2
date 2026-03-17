@@ -15,29 +15,34 @@ interface TerminalLineProps {
   onTypingComplete?: () => void;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  text: 'text-green-400',
-  system: 'text-cyan-400',
-  ascii: 'text-green-300',
-  error: 'text-red-400',
-  prompt: 'text-yellow-400',
-  input: 'text-white',
-  streaming: 'text-green-300',
+const TYPE_STYLES: Record<string, string> = {
+  text: 'text-[#00dd38]',
+  system: 'text-[#00cccc] terminal-glow-strong',
+  ascii: 'text-[#00ee44]',
+  error: 'text-[#ff4444] terminal-glow-strong',
+  prompt: 'text-[#cccc00]',
+  input: 'text-[#e0e0e0] opacity-70',
+  streaming: 'text-[#00dd38]',
 };
 
 export default function TerminalLine({ line, onTypingComplete }: TerminalLineProps) {
-  const colorClass = line.color || TYPE_COLORS[line.type] || 'text-green-400';
+  const styleClass = line.color || TYPE_STYLES[line.type] || 'text-[#00dd38]';
+
+  // 빈 줄은 간격용
+  if (!line.text && !line.typing) {
+    return <div className="h-3" />;
+  }
 
   if (line.typing) {
     return (
-      <div className={`whitespace-pre-wrap ${colorClass}`}>
+      <div className={`whitespace-pre-wrap line-enter ${styleClass}`}>
         <TypingEffect text={line.text} speed={20} onComplete={onTypingComplete} />
       </div>
     );
   }
 
   return (
-    <div className={`whitespace-pre-wrap ${colorClass}`}>
+    <div className={`whitespace-pre-wrap line-enter ${styleClass}`}>
       {line.text}
     </div>
   );

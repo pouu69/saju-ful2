@@ -33,8 +33,8 @@ export function parseCommand(input: string, exits: RoomExit[]): CommandType {
     return { type: 'look' };
   }
 
-  // 다시/restart
-  if (trimmed === '다시' || trimmed === '처음' || trimmed === 'restart') {
+  // 다시/restart/새로/초기화
+  if (trimmed === '다시' || trimmed === '처음' || trimmed === '새로' || trimmed === '초기화' || trimmed === 'restart' || trimmed === 'new') {
     return { type: 'restart' };
   }
 

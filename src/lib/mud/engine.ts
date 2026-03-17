@@ -82,10 +82,10 @@ export function executeCommand(command: CommandType, currentRoom: RoomId): Engin
         lines: [
           text(''),
           system('  ═══ 도움말 ═══'),
-          text('  이동: 동/서/남/북 또는 1/2/3/4'),
+          text('  이동: 번호(1/2/3/4) 또는 동/서/남/북'),
           text('  보기: 현재 방 다시 보기'),
           text('  도움: 이 도움말 표시'),
-          text('  다시: 처음부터 다시 시작'),
+          text('  새로: 새로운 사주 풀이 (처음부터)'),
           text(''),
         ],
       };

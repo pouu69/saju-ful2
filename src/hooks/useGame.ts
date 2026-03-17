@@ -106,11 +106,35 @@ export function useGame() {
     const currentPhase = phaseRef.current;
     const currentRoom = currentRoomRef.current;
 
+    // "이전" 명령: 입력 단계 롤백
+    const isBack = input === '이전' || input === '뒤로' || input.toLowerCase() === 'back';
+    if (isBack && currentPhase !== 'name' && currentPhase !== 'exploring') {
+      const prevPhase: Record<string, GamePhase> = {
+        date: 'name',
+        time: 'date',
+        gender: 'time',
+      };
+      const prev = prevPhase[currentPhase];
+      if (prev) {
+        const prompts: Record<string, string> = {
+          name: '현자: "그대의 이름이 무엇인가?"',
+          date: '현자: "생년월일을 알려주시오. (예: 1990-03-15)"',
+          time: '현자: "태어난 시간은? (예: 14:30, 모르면 \'모름\')"',
+        };
+        addLine('', 'text');
+        addLine(`  ${prompts[prev]}`, 'system');
+        addLine('  (이전 단계로 돌아갑니다)', 'text');
+        setPhase(prev);
+        return;
+      }
+    }
+
     switch (currentPhase) {
       case 'name':
         birthInfoRef.current.name = input;
         addLine('', 'text');
         addLine('  현자: "생년월일을 알려주시오. (예: 1990-03-15)"', 'system');
+        addLine('  ("이전" 입력 시 이전 단계로 돌아갑니다)', 'text');
         setPhase('date');
         break;
 

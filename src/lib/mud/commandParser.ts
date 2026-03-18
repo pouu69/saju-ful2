@@ -15,6 +15,7 @@ const ROOM_NAME_MAP: Record<string, string> = {
   '십성': '서',
   '운세': '남',
   '종합': '북',
+  '궁합': '위',
   '동굴': '남',  // synthesis → cave 방향
 };
 

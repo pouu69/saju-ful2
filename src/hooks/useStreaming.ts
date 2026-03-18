@@ -20,6 +20,7 @@ export function useStreaming() {
       onChunk: (text: string) => void,
       onComplete: () => void,
       onError: (error: string) => void,
+      partnerSajuResult?: SajuResult | null,
     ) => {
       cancelStream();
       setIsStreaming(true);
@@ -31,7 +32,7 @@ export function useStreaming() {
         const response = await fetch('/api/interpret', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomId, sajuResult, userName: sajuResult.birthInfo.name }),
+          body: JSON.stringify({ roomId, sajuResult, userName: sajuResult.birthInfo.name, partnerSajuResult }),
           signal: controller.signal,
         });
 

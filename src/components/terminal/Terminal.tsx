@@ -10,6 +10,8 @@ interface TerminalProps {
   inputDisabled?: boolean;
   inputPrompt?: string;
   onTypingComplete?: (lineId: string) => void;
+  userName?: string;
+  roomName?: string;
 }
 
 export default function Terminal({
@@ -18,6 +20,8 @@ export default function Terminal({
   inputDisabled = false,
   inputPrompt,
   onTypingComplete,
+  userName,
+  roomName,
 }: TerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -44,11 +48,18 @@ export default function Terminal({
         <div className="pointer-events-none absolute inset-0 z-20 crt-noise" />
 
         {/* 화면 상단 바 */}
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-[#1a3a1a] bg-[#060806]">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#00ff41] opacity-60" />
-          <span className="text-[11px] text-[#00aa2a] tracking-wider uppercase">
-            사주명리 MUD v1.0
-          </span>
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a3a1a] bg-[#060806]">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#00ff41] opacity-60" />
+            <span className="text-[11px] text-[#00aa2a] tracking-wider uppercase">
+              사주명리 MUD v1.0
+            </span>
+          </div>
+          {roomName && (
+            <span className="text-[11px] text-[#cccc00] tracking-wider">
+              [{roomName}]
+            </span>
+          )}
         </div>
 
         {/* 터미널 내용 */}
@@ -61,6 +72,7 @@ export default function Terminal({
               key={line.id}
               line={line}
               onTypingComplete={() => onTypingComplete?.(line.id)}
+              userName={userName}
             />
           ))}
 

@@ -97,6 +97,9 @@ export interface Gongmang {
 // 성별
 export type Gender = 'male' | 'female';
 
+// 결혼 상태
+export type MaritalStatus = 'single' | 'married' | 'etc';
+
 // 사주 계산 입력
 export interface BirthInfo {
   name: string;
@@ -106,6 +109,8 @@ export interface BirthInfo {
   hour: number | null;   // null = 모름
   minute: number;
   gender: Gender;
+  occupation: string;        // 직업 (자유 입력)
+  maritalStatus: MaritalStatus;  // 결혼 유무
 }
 
 // 사주 전체 결과

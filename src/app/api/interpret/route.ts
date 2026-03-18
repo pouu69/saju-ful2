@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { SYSTEM_PROMPT, getRoomPrompt } from '@/lib/ai/prompts';
 import { getTemplateInterpretation } from '@/lib/ai/templates';
 import { SajuResult } from '@/lib/saju/types';
+import { logger } from '@/lib/logger';
 
 const SSE_HEADERS = {
   'Content-Type': 'text/event-stream',
@@ -26,7 +27,10 @@ function sseError(msg: string): Uint8Array {
 
 // SDK 싱글톤 (모듈 레벨에서 한 번만 생성)
 const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL,
+    })
   : null;
 
 const gemini = process.env.GEMINI_API_KEY
@@ -48,9 +52,17 @@ function streamTemplate(text: string): ReadableStream {
 }
 
 async function streamOpenAI(userPrompt: string): Promise<ReadableStream> {
+  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  await logger.info('OpenAI', 'Request', {
+    model,
+    baseURL: process.env.OPENAI_BASE_URL,
+    userPrompt,
+  });
+
   const stream = await openai!.chat.completions.create({
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    max_tokens: 1024,
+    model,
+    max_completion_tokens: 8192,
+    reasoning_effort: 'low',
     stream: true,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -58,16 +70,23 @@ async function streamOpenAI(userPrompt: string): Promise<ReadableStream> {
     ],
   });
 
+  let fullResponse = '';
   return new ReadableStream({
     async start(controller) {
       try {
         for await (const chunk of stream) {
           const text = chunk.choices[0]?.delta?.content;
-          if (text) controller.enqueue(sseEncode(text));
+          if (text) {
+            fullResponse += text;
+            controller.enqueue(sseEncode(text));
+          }
         }
+        await logger.info('OpenAI', 'Response', { model, response: fullResponse });
         controller.enqueue(sseDone());
         controller.close();
-      } catch {
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        await logger.error('OpenAI', 'Stream error', { model, error: errorMsg });
         controller.enqueue(sseError('OpenAI 해석 중 오류가 발생했습니다.'));
         controller.close();
       }
@@ -76,23 +95,33 @@ async function streamOpenAI(userPrompt: string): Promise<ReadableStream> {
 }
 
 async function streamGemini(userPrompt: string): Promise<ReadableStream> {
+  const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  await logger.info('Gemini', 'Request', { model, userPrompt });
+
   const stream = gemini!.models.generateContentStream({
-    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    model,
     contents: [
       { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${userPrompt}` }] },
     ],
   });
 
+  let fullResponse = '';
   return new ReadableStream({
     async start(controller) {
       try {
         for await (const chunk of await stream) {
           const text = chunk.text;
-          if (text) controller.enqueue(sseEncode(text));
+          if (text) {
+            fullResponse += text;
+            controller.enqueue(sseEncode(text));
+          }
         }
+        await logger.info('Gemini', 'Response', { model, response: fullResponse });
         controller.enqueue(sseDone());
         controller.close();
-      } catch {
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        await logger.error('Gemini', 'Stream error', { model, error: errorMsg });
         controller.enqueue(sseError('Gemini 해석 중 오류가 발생했습니다.'));
         controller.close();
       }
@@ -101,23 +130,30 @@ async function streamGemini(userPrompt: string): Promise<ReadableStream> {
 }
 
 export async function POST(request: Request) {
-  const { roomId, sajuResult } = await request.json() as {
+  const { roomId, sajuResult, partnerSajuResult } = await request.json() as {
     roomId: string;
     sajuResult: SajuResult;
+    partnerSajuResult?: SajuResult;
   };
 
-  const userPrompt = getRoomPrompt(roomId, sajuResult);
+  const userPrompt = getRoomPrompt(roomId, sajuResult, partnerSajuResult);
+  await logger.info('API', `POST /api/interpret`, { roomId });
 
   let body: ReadableStream;
+  let provider: string;
 
   if (openai) {
+    provider = 'OpenAI';
     body = await streamOpenAI(userPrompt);
   } else if (gemini) {
+    provider = 'Gemini';
     body = await streamGemini(userPrompt);
   } else {
-    const templateText = getTemplateInterpretation(roomId, sajuResult);
+    provider = 'Template';
+    const templateText = getTemplateInterpretation(roomId, sajuResult, partnerSajuResult);
     body = streamTemplate(templateText);
   }
 
+  await logger.info('API', `Using provider: ${provider}`);
   return new Response(body, { headers: SSE_HEADERS });
 }

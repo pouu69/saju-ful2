@@ -27,6 +27,11 @@ export function calculateFiveElementBalance(pillars: Pillar[]): FiveElementBalan
     }
   }
 
+  // 부동소수점 오차 보정 (소수점 첫째 자리까지 반올림)
+  for (const key of Object.keys(scores) as FiveElement[]) {
+    scores[key] = Math.round(scores[key] * 10) / 10;
+  }
+
   // 가장 강한/약한 오행 찾기
   const entries = Object.entries(scores) as [FiveElement, number][];
   entries.sort((a, b) => b[1] - a[1]);

@@ -14,6 +14,7 @@ export interface LineData {
 interface TerminalLineProps {
   line: LineData;
   onTypingComplete?: () => void;
+  userName?: string;
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -45,7 +46,8 @@ const ELEMENT_COLOR: Record<string, string> = {
 };
 
 const TEN_GODS = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
-const TWELVE_STAGES = ['장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양'];
+// 12운성: 한 글자(쇠,병,사,묘,절,태,양)는 일반 텍스트와 오탐이 심해 2글자 이상만 하이라이트
+const TWELVE_STAGES = ['장생', '목욕', '관대', '건록', '제왕'];
 
 // 한자 → 오행 매핑 (모듈 레벨 상수)
 const HANJA_TO_ELEMENT: Record<string, string> = {
@@ -113,7 +115,25 @@ function getHighlightClass(match: string): string | null {
   return null;
 }
 
-function highlightText(text: string): ReactNode {
+function highlightText(text: string, userName?: string): ReactNode {
+  // 이름 하이라이트: 이름이 포함되어 있으면 먼저 분리 후 각 파트에 키워드 하이라이트 적용
+  if (userName && text.includes(userName)) {
+    const nameParts: ReactNode[] = [];
+    const nameSegments = text.split(userName);
+    let nk = 0;
+    for (let i = 0; i < nameSegments.length; i++) {
+      if (nameSegments[i]) {
+        nameParts.push(<span key={`seg-${nk++}`}>{highlightText(nameSegments[i])}</span>);
+      }
+      if (i < nameSegments.length - 1) {
+        nameParts.push(
+          <span key={`name-${nk++}`} className="text-[#ffaa00] font-bold terminal-glow-strong">{userName}</span>
+        );
+      }
+    }
+    return <>{nameParts}</>;
+  }
+
   const parts: ReactNode[] = [];
   let lastIndex = 0;
   let key = 0;
@@ -145,7 +165,7 @@ function highlightText(text: string): ReactNode {
   return <>{parts}</>;
 }
 
-export default function TerminalLine({ line, onTypingComplete }: TerminalLineProps) {
+export default function TerminalLine({ line, onTypingComplete, userName }: TerminalLineProps) {
   const styleClass = line.color || TYPE_STYLES[line.type] || 'text-[#00dd38]';
 
   if (!line.text && !line.typing) {
@@ -164,7 +184,7 @@ export default function TerminalLine({ line, onTypingComplete }: TerminalLinePro
 
   return (
     <div className={`whitespace-pre-wrap line-enter ${styleClass}`}>
-      {skipHighlight ? line.text : highlightText(line.text)}
+      {skipHighlight ? line.text : highlightText(line.text, userName)}
     </div>
   );
 }

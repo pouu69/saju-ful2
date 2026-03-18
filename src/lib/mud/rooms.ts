@@ -28,6 +28,7 @@ export const ROOMS: Record<string, Room> = {
       { direction: '서', roomId: 'tenGods', label: '십성의 방' },
       { direction: '남', roomId: 'luck', label: '운세의 방' },
       { direction: '북', roomId: 'synthesis', label: '종합 풀이' },
+      { direction: '위', roomId: 'compatibility', label: '궁합의 방' },
     ],
     aiInterpretation: true,
   },
@@ -91,5 +92,23 @@ export const ROOMS: Record<string, Room> = {
       { direction: '남', roomId: 'cave', label: '사주의 동굴' },
     ],
     aiInterpretation: true,
+  },
+  compatibility: {
+    id: 'compatibility',
+    name: '궁합의 방',
+    description: [
+      '',
+      '  [궁합의 방]에 들어섰습니다.',
+      '  두 개의 거울이 마주 보며 서로의 기운을 비추고 있습니다.',
+      '  현자가 미소를 지으며 말합니다...',
+      '',
+      '  현자: "궁합을 보려면 상대방의 정보가 필요하다네."',
+      '  현자: "상대방의 이름을 알려주시오."',
+      '',
+    ],
+    exits: [
+      { direction: '남', roomId: 'cave', label: '사주의 동굴' },
+    ],
+    aiInterpretation: false,
   },
 };

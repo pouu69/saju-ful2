@@ -28,12 +28,12 @@ export function parseCommand(input: string, exits: RoomExit[]): CommandType {
 
   // 방 이름으로 이동 (편의)
   const roomNameMap: Record<string, string> = {
-    '오행': 'elements',
-    '십성': 'elements',
-    '운세': 'luck',
     '종합': 'synthesis',
+    '상세': 'detail',
+    '오행': 'detail',
+    '십성': 'detail',
+    '운세': 'luck',
     '궁합': 'compatibility',
-    '동굴': 'cave',
   };
 
   const targetRoom = roomNameMap[trimmed];

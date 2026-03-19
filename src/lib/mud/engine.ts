@@ -45,8 +45,8 @@ export function getExitLines(roomId: RoomId): OutputLine[] {
 
   const lines: OutputLine[] = [
     text(''),
-    text('  ─────────────────────────────', 'text-[#1a3a1a]'),
-    text('  어디로 가시겠습니까?', 'text-[#00aa2a]'),
+    text('  ─────────────────────────────', 'text-[#2a1e08]'),
+    text('  어디로 가시겠습니까?', 'text-[#8A6618]'),
     text(''),
   ];
 
@@ -55,7 +55,7 @@ export function getExitLines(roomId: RoomId): OutputLine[] {
   });
 
   lines.push(text(''));
-  lines.push(text('  번호를 입력하세요. (도움: 명령어 목록)', 'text-[#00aa2a]'));
+  lines.push(text('  번호를 입력하세요. (도움: 명령어 목록)', 'text-[#8A6618]'));
   return lines;
 }
 

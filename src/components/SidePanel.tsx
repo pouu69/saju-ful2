@@ -16,19 +16,19 @@ export default function SidePanel({ isOpen, onClose, activeTab, onTabChange }: S
     <>
       {/* 패널 */}
       <div
-        className={`fixed top-0 right-0 z-40 h-full w-80 bg-[#080a08] border-l border-[#1a3a1a] transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 z-40 h-full w-80 bg-[#080600] border-l border-[#2a1e08] transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full font-['D2Coding',_monospace]">
           {/* 헤더 */}
           <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="text-[#00ff41] text-base terminal-glow-strong">
+            <h2 className="text-[#D4A020] text-base terminal-glow-strong">
               {activeTab === 'guide' ? '도움말' : '용어 사전'}
             </h2>
             <button
               onClick={onClose}
-              className="w-7 h-7 flex items-center justify-center rounded border border-[#1a3a1a] text-[#00aa2a] hover:text-[#00ff41] hover:border-[#00aa2a] transition-colors text-sm"
+              className="w-7 h-7 flex items-center justify-center rounded border border-[#2a1e08] text-[#8A6618] hover:text-[#D4A020] hover:border-[#8A6618] transition-colors text-sm"
               aria-label="패널 닫기"
             >
               ✕
@@ -69,8 +69,8 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       onClick={onClick}
       className={`px-3 py-1 text-[12px] rounded border transition-colors ${
         active
-          ? 'border-[#00ff41] bg-[#0f1a0f] text-[#00ff41] terminal-glow-strong'
-          : 'border-[#1a3a1a] text-[#00aa2a] hover:border-[#00aa2a] hover:text-[#00ff41]'
+          ? 'border-[#D4A020] bg-[#1a1400] text-[#D4A020] terminal-glow-strong'
+          : 'border-[#2a1e08] text-[#8A6618] hover:border-[#8A6618] hover:text-[#D4A020]'
       }`}
     >
       {children}
@@ -97,11 +97,9 @@ function GuideTab() {
       </Section>
 
       <Section title="방 안내">
-        <Room emoji="🔮" name="사주의 동굴" desc="사주팔자 개요" />
-        <Room emoji="🌿" name="오행의 방" desc="목화토금수 균형 분석" />
-        <Room emoji="⭐" name="십성의 방" desc="십성 관계 해석" />
+        <Room emoji="📜" name="종합 풀이" desc="사주 전체 개요 (메인)" />
+        <Room emoji="🔮" name="사주 상세" desc="오행·십성·원국 깊이 분석" />
         <Room emoji="🌊" name="운세의 방" desc="대운/세운 흐름" />
-        <Room emoji="📜" name="종합 풀이" desc="모든 것을 종합한 풀이" />
         <Room emoji="💑" name="궁합의 방" desc="두 사람의 궁합 분석" />
       </Section>
 
@@ -114,7 +112,7 @@ function GuideTab() {
         <Cmd cmd="도움" desc="도움말 표시" />
       </Section>
 
-      <div className="mt-6 pt-4 border-t border-[#1a3a1a] text-[#00aa2a] text-[11px]">
+      <div className="mt-6 pt-4 border-t border-[#2a1e08] text-[#8A6618] text-[11px]">
         사주는 참고일 뿐, 운명은 스스로 만들어가는 것입니다.
       </div>
     </>
@@ -230,12 +228,12 @@ function GlossaryTab() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="용어 검색 (예: 비견, 오행, 대운)"
-          className="w-full px-3 py-1.5 rounded border border-[#1a3a1a] bg-[#0a0a0a] text-[#00ff41] text-[12px] placeholder-[#005500] focus:border-[#00aa2a] focus:outline-none transition-colors"
+          className="w-full px-3 py-1.5 rounded border border-[#2a1e08] bg-[#080600] text-[#D4A020] text-[12px] placeholder-[#5a4010] focus:border-[#8A6618] focus:outline-none transition-colors"
         />
       </div>
 
       {sections.length === 0 ? (
-        <div className="text-[#00aa2a] text-[12px] py-4">
+        <div className="text-[#8A6618] text-[12px] py-4">
           &quot;{query}&quot;에 해당하는 용어가 없습니다.
         </div>
       ) : (
@@ -272,7 +270,7 @@ function GlossaryTab() {
       )}
 
       {!query && (
-        <div className="mt-6 pt-4 border-t border-[#1a3a1a] text-[#00aa2a] text-[11px]">
+        <div className="mt-6 pt-4 border-t border-[#2a1e08] text-[#8A6618] text-[11px]">
           풀이에서 모르는 용어가 나오면 여기서 확인하세요.
         </div>
       )}
@@ -283,8 +281,8 @@ function GlossaryTab() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h3 className="text-[#00cccc] text-[12px] tracking-wider uppercase mb-2">{title}</h3>
-      <div className="text-[#00bb33]">{children}</div>
+      <h3 className="text-[#48B8A8] text-[12px] tracking-wider uppercase mb-2">{title}</h3>
+      <div className="text-[#A08028]">{children}</div>
     </div>
   );
 }
@@ -304,7 +302,7 @@ function Room({ emoji, name, desc }: { emoji: string; name: string; desc: string
       <span className="shrink-0">{emoji}</span>
       <div>
         <span className="text-[#cccc00]">{name}</span>
-        <span className="text-[#00aa2a]"> — {desc}</span>
+        <span className="text-[#8A6618]"> — {desc}</span>
       </div>
     </div>
   );
@@ -314,7 +312,7 @@ function Cmd({ cmd, desc }: { cmd: string; desc: string }) {
   return (
     <div className="flex gap-2 mb-1">
       <span className="text-[#cccc00] shrink-0 w-20">{cmd}</span>
-      <span className="text-[#00aa2a]">{desc}</span>
+      <span className="text-[#8A6618]">{desc}</span>
     </div>
   );
 }
@@ -323,7 +321,7 @@ function Term({ name, desc, color }: { name: string; desc: string; color?: strin
   return (
     <div className="mb-2">
       <span className={`${color || 'text-[#cccc00]'} font-bold`}>{name}</span>
-      <p className="text-[#00bb33] text-[12px] mt-0.5 leading-snug">{desc}</p>
+      <p className="text-[#A08028] text-[12px] mt-0.5 leading-snug">{desc}</p>
     </div>
   );
 }
@@ -331,8 +329,8 @@ function Term({ name, desc, color }: { name: string; desc: string; color?: strin
 function GlossaryGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-3">
-      <div className="text-[#00aa88] text-[11px] mb-1.5 tracking-wide">{title}</div>
-      <div className="pl-2 border-l border-[#1a3a1a]">{children}</div>
+      <div className="text-[#48B8A8] text-[11px] mb-1.5 tracking-wide">{title}</div>
+      <div className="pl-2 border-l border-[#2a1e08]">{children}</div>
     </div>
   );
 }

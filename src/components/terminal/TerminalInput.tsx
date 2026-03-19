@@ -35,7 +35,7 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
 
   if (disabled) {
     return (
-      <div className="flex items-center text-[#00aa2a] opacity-50 py-1">
+      <div className="flex items-center text-[#8A6618] opacity-50 py-1">
         <span className="mr-2">{prompt}</span>
         <span className="terminal-cursor">_</span>
         <span className="ml-2 text-[11px] tracking-wider">(처리 중...)</span>
@@ -49,8 +49,8 @@ export default function TerminalInput({ onSubmit, disabled = false, prompt = '>'
       onClick={() => inputRef.current?.focus({ preventScroll: true })}
     >
       {/* 보이는 텍스트 + 커서 */}
-      <div className="flex items-center text-[#00ff41]">
-        <span className="text-[#cccc00] mr-2 terminal-glow-strong">{prompt}</span>
+      <div className="flex items-center text-[#D4A020]">
+        <span className="text-[#D4A020] mr-2 terminal-glow-strong">{prompt}</span>
         <span className="text-[#e8e8e8] whitespace-pre">{value.slice(0, cursorPos)}</span>
         <span className="terminal-cursor">▌</span>
         <span className="text-[#e8e8e8] whitespace-pre">{value.slice(cursorPos)}</span>

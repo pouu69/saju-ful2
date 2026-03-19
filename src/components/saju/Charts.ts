@@ -18,8 +18,8 @@ const ELEMENT_COLORS: Record<FiveElement, string> = {
   water: 'text-[#4488ff]',
 };
 
-const HEADER = 'text-[#00aaaa]';
-const LABEL = 'text-[#888888]';
+const HEADER = 'text-[#48B8A8]';
+const LABEL = 'text-[#8A7848]';
 
 /** 두 블록을 좌우 병합 */
 function mergeBlocks(left: ChartLine[], right: ChartLine[], leftWidth: number, gap: number = 3): ChartLine[] {

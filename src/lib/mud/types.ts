@@ -1,4 +1,4 @@
-export type RoomId = 'entrance' | 'cave' | 'elements' | 'luck' | 'synthesis' | 'compatibility';
+export type RoomId = 'entrance' | 'synthesis' | 'detail' | 'luck' | 'compatibility';
 
 export interface RoomExit {
   direction: string;    // "동", "서", "남", "북"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import TerminalLine, { LineData } from './TerminalLine';
 import TerminalInput from './TerminalInput';
 
@@ -12,6 +12,8 @@ interface TerminalProps {
   onTypingComplete?: (lineId: string) => void;
   userName?: string;
   roomName?: string;
+  showCopy?: boolean;
+  onCopy?: () => Promise<boolean>;
 }
 
 /** 자동 스크롤 판정: 하단에서 이 값(px) 이내면 "바닥에 있음" */
@@ -25,9 +27,12 @@ export default function Terminal({
   onTypingComplete,
   userName,
   roomName,
+  showCopy = false,
+  onCopy,
 }: TerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const userScrolledUp = useRef(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -52,6 +57,16 @@ export default function Terminal({
     input?.focus({ preventScroll: true });
   };
 
+  const handleCopy = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onCopy) return;
+    const ok = await onCopy();
+    if (ok) {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 1500);
+    }
+  }, [onCopy]);
+
   return (
     <div className="crt-monitor" onClick={handleClick}>
       <div className="crt-screen">
@@ -61,15 +76,15 @@ export default function Terminal({
         <div className="pointer-events-none absolute inset-0 z-20 crt-noise" />
 
         {/* 화면 상단 바 */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a3a1a] bg-[#060806]">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[#2a1e08] bg-[#060500]">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#00ff41] opacity-60" />
-            <span className="text-[11px] text-[#00aa2a] tracking-wider uppercase">
-              사주명리 MUD v1.0
+            <div className="w-2.5 h-2.5 rounded-full bg-[#D4A020] opacity-60" />
+            <span className="text-[11px] text-[#8A6618] tracking-wider uppercase">
+              사주명리 MUD v2.0
             </span>
           </div>
           {roomName && (
-            <span className="text-[11px] text-[#cccc00] tracking-wider">
+            <span className="text-[11px] text-[#FFD060] tracking-wider">
               [{roomName}]
             </span>
           )}
@@ -79,7 +94,9 @@ export default function Terminal({
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="terminal-content terminal-glow h-[calc(100%-36px)] overflow-y-auto p-5 pb-24 scrollbar-thin scroll-smooth cursor-text"
+          className={`terminal-content terminal-glow overflow-y-auto p-5 pb-24 scrollbar-thin scroll-smooth cursor-text ${
+            showCopy ? 'h-[calc(100%-72px)]' : 'h-[calc(100%-36px)]'
+          }`}
         >
           {lines.map(line => (
             <TerminalLine
@@ -98,6 +115,18 @@ export default function Terminal({
             />
           </div>
         </div>
+
+        {/* 하단 복사 바 */}
+        {showCopy && (
+          <div className="flex items-center justify-end px-4 py-2 border-t border-[#2a1e08] bg-[#060500]">
+            <button
+              onClick={handleCopy}
+              className="px-3 py-1 rounded border border-[#8A6618] text-[#D4A020] text-[11px] hover:bg-[#1a1400] hover:border-[#D4A020] transition-colors terminal-glow-strong"
+            >
+              {copyFeedback ? '복사됨' : '현재 방 복사'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,51 +9,55 @@ import { enterRoom, executeCommand, getExitLines } from '@/lib/mud/engine';
 import { ROOMS } from '@/lib/mud/rooms';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generatePillarLines } from '@/components/saju/PillarDisplay';
-import { generateElementChart, generateTenGodsChart, generateLuckTimeline, generateSynthesisCard, generateElementTenGodsChart, ChartLine } from '@/components/saju/Charts';
+import { generateLuckTimeline, generateSynthesisCard, ChartLine } from '@/components/saju/Charts';
 import { BirthInfo, SajuResult, MaritalStatus, CalendarType } from '@/lib/saju/types';
 
 const TITLE_ART_WIDE = [
   '',
-  '  ============================================================',
+  '         )(                                              )(',
+  '        /||\\ ═══════════════════════════════════════════ /||\\',
+  '         ||                                               ||',
+  '         ||   甲  乙  丙  丁  戊  己  庚  辛  壬  癸     ||',
+  '         ||                                               ||',
+  '         ||          사  주  명  리  의    미  궁          ||',
+  '         ||          四  柱  命  理  의    迷  宮          ||',
+  '         ||                                               ||',
+  '         ||           Labyrinth of Four Pillars            ||',
+  '         ||                                               ||',
+  '         ||   子  丑  寅  卯  辰  巳  午  未  申  酉  戌  亥',
+  '        /||\\ ═══════════════════════════════════════════ /||\\',
+  '         )(                                              )(',
   '',
-  '          甲  乙  丙  丁  戊  己  庚  辛  壬  癸',
+  '              木 ─── 火 ─── 土 ─── 金 ─── 水      v2.0',
   '',
-  '              사  주  명  리  의    미  궁',
-  '              四  柱  命  理  의    迷  宮',
-  '',
-  '               Labyrinth of Four Pillars',
-  '',
-  '          子  丑  寅  卯  辰  巳  午  未  申  酉  戌  亥',
-  '',
-  '  ============================================================',
-  '       木 --- 火 --- 土 --- 金 --- 水            v1.0',
-  '',
-  '  오래된 동굴 입구... 향 연기가 피어오르고,',
+  '  오래된 동굴 입구... 횃불이 일렁이고,',
   '  벽면에 새겨진 천간과 지지의 문양이 희미하게 빛납니다.',
-  '  백발의 현자가 조용히 앉아 그대를 기다리고 있습니다.',
+  '  백발의 현자가 향 연기 너머로 그대를 바라보고 있습니다.',
 ];
 
 const TITLE_ART_NARROW = [
   '',
-  ' ===================================',
+  '      )(                        )(',
+  '     /||\\ ════════════════════ /||\\',
+  '      ||                        ||',
+  '      || 甲乙丙丁戊己庚辛壬癸  ||',
+  '      ||                        ||',
+  '      ||  사 주 명 리 의 미 궁  ||',
+  '      ||  四 柱 命 理 의 迷 宮  ||',
+  '      ||                        ||',
+  '      ||  Labyrinth of Pillars  ||',
+  '      ||                        ||',
+  '      || 子丑寅卯辰巳午未申酉  ||',
+  '     /||\\ ════════════════════ /||\\',
+  '      )(                        )(',
   '',
-  '  甲 乙 丙 丁 戊 己 庚 辛 壬 癸',
-  '',
-  '    사 주 명 리 의  미 궁',
-  '    四 柱 命 理 의  迷 宮',
-  '',
-  '   Labyrinth of Four Pillars',
-  '',
-  '  子丑寅卯辰巳午未申酉戌亥',
-  '',
-  ' ===================================',
-  '  木--火--土--金--水     v1.0',
+  '    木──火──土──金──水    v2.0',
   '',
   '  오래된 동굴 입구...',
-  '  향 연기가 피어오르고,',
+  '  횃불이 일렁이고,',
   '  천간과 지지의 문양이',
   '  희미하게 빛납니다.',
-  '  현자가 그대를 기다립니다.',
+  '  현자가 그대를 바라봅니다.',
 ];
 
 // 이전 단계 롤백 매핑 (모듈 레벨 상수)
@@ -211,6 +215,16 @@ function getNextMissingPhase(info: Partial<BirthInfo>): GamePhase {
   return 'exploring';
 }
 
+/** 상대방 birthInfo에서 아직 채워지지 않은 첫 partner_ phase 반환 */
+function getNextPartnerPhase(info: Partial<BirthInfo>): GamePhase {
+  if (!info.name) return 'partner_name';
+  if (info.year === undefined) return 'partner_date';
+  if (!info.calendarType) return 'partner_calendar';
+  if (info.hour === undefined && !('hour' in info)) return 'partner_time';
+  if (!info.gender) return 'partner_gender';
+  return 'exploring'; // 모두 채워짐
+}
+
 export function useGame() {
   const { lines, addLine, addLines, appendToLine, clear } = useTerminal();
   const { isStreaming, streamInterpretation } = useStreaming();
@@ -287,11 +301,10 @@ export function useGame() {
       addLine(line.text, line.type as 'text', { color: line.color });
     }
 
-    // 사주 테이블은 항상 표시
-    if (sajuRef.current) {
+    // 사주 테이블 표시 (궁합의 방은 상대방 입력이 먼저이므로 제외)
+    if (sajuRef.current && roomId !== 'compatibility') {
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-      // 모든 방에서 사주 테이블 노출
       const pillarLines = generatePillarLines(sajuRef.current, isMobile) as ChartLine[];
       for (const line of pillarLines) {
         addLine(line.text, 'ascii', { color: line.color || 'text-yellow-300' });
@@ -300,9 +313,6 @@ export function useGame() {
       // 방별 추가 차트 표시
       let chartLines: ChartLine[] = [];
       switch (roomId) {
-        case 'elements':
-          chartLines = generateElementTenGodsChart(sajuRef.current, isMobile);
-          break;
         case 'luck':
           chartLines = generateLuckTimeline(sajuRef.current);
           break;
@@ -337,7 +347,7 @@ export function useGame() {
       const saju = calculateFullSaju(info);
       sajuRef.current = saju;
       setPhase('exploring');
-      moveToRoom('cave');
+      moveToRoom('synthesis');
     } catch {
       addLine('  사주 계산 중 오류가 발생했습니다. 날짜를 확인해주세요.', 'error');
       addLine('  현자: "다시 생년월일을 알려주시오. (예: 1990-03-15)"', 'system');
@@ -375,7 +385,7 @@ export function useGame() {
     if (isBack && currentPhase === 'partner_name') {
       // 궁합의 방에서 첫 단계에서 뒤로 → 동굴로 복귀
       setPhase('exploring');
-      moveToRoom('cave');
+      moveToRoom('synthesis');
       return;
     }
     if (isBack && currentPhase !== 'name' && currentPhase !== 'exploring') {
@@ -495,10 +505,47 @@ export function useGame() {
       }
 
       case 'partner_name': {
-        partnerInfoRef.current.name = input.trim();
+        // 한 줄 파싱: 가능한 만큼 채운다 (이름 날짜 시간 성별)
+        const partnerParsed = parsePartial(input);
+        partnerInfoRef.current = { ...partnerInfoRef.current, ...partnerParsed };
+        // 상대방은 결혼 상태 불필요 → 기본값 설정
+        if (!partnerInfoRef.current.maritalStatus && partnerInfoRef.current.gender) {
+          partnerInfoRef.current.maritalStatus = 'etc';
+        }
+
+        const nextPartnerPhase = getNextPartnerPhase(partnerInfoRef.current);
+        if (nextPartnerPhase === 'exploring') {
+          // 모두 채워짐 → 바로 궁합 계산
+          addLine('', 'text');
+          addLine('  현자가 두 사람의 사주를 나란히 펼칩니다...', 'system');
+          addLine('', 'text');
+          try {
+            const partnerSaju = calculateFullSaju(partnerInfoRef.current as BirthInfo);
+            partnerSajuRef.current = partnerSaju;
+            setPhase('exploring');
+            triggerAi('compatibility');
+          } catch {
+            addLine('  상대방의 사주 계산 중 오류가 발생했습니다.', 'error');
+            addLine(`  ${PHASE_PROMPTS['partner_date']}`, 'system');
+            partnerInfoRef.current = { name: partnerInfoRef.current.name };
+            setPhase('partner_date');
+          }
+          break;
+        }
+
+        // 누락된 첫 필드로 이동
         addLine('', 'text');
-        addLine(`  ${PHASE_PROMPTS['partner_date']}`, 'system');
-        setPhase('partner_date');
+        if (Object.keys(partnerParsed).length > 1) {
+          const filled: string[] = [];
+          if (partnerParsed.name) filled.push(`이름: ${partnerParsed.name}`);
+          if (partnerParsed.year !== undefined) filled.push(`생년월일: ${partnerParsed.year}-${partnerParsed.month}-${partnerParsed.day}`);
+          if (partnerParsed.calendarType) filled.push(`달력: ${partnerParsed.calendarType === 'solar' ? '양력' : '음력'}`);
+          if (partnerParsed.hour !== undefined || partnerParsed.hour === null) filled.push(`시간: ${partnerParsed.hour === null ? '모름' : `${partnerParsed.hour}:${String(partnerParsed.minute || 0).padStart(2, '0')}`}`);
+          if (partnerParsed.gender) filled.push(`성별: ${partnerParsed.gender === 'male' ? '남' : '여'}`);
+          addLine(`  인식됨: ${filled.join(' · ')}`, 'text');
+        }
+        addLine(`  ${PHASE_PROMPTS[nextPartnerPhase]}`, 'system');
+        setPhase(nextPartnerPhase);
         break;
       }
 
@@ -604,6 +651,69 @@ export function useGame() {
     }
   }, [addLine, setPhase, moveToRoom, startGame]);
 
+  /** 현재 방의 AI 풀이 텍스트를 클립보드에 복사 */
+  const copyCurrentRoom = useCallback(async (): Promise<boolean> => {
+    const roomId = currentRoomRef.current;
+    const cached = aiCacheRef.current[roomId];
+    if (!cached) return false;
+
+    const room = ROOMS[roomId];
+    const header = `── ${room?.name || roomId} ──`;
+    const text = `${header}\n\n${cached}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  /** 모든 방의 AI 풀이를 .txt 파일로 다운로드 */
+  const exportAll = useCallback(async (): Promise<boolean> => {
+    const name = birthInfoRef.current.name || '사주 풀이';
+    const bi = birthInfoRef.current;
+    const dateStr = bi.year ? `${bi.year}년 ${bi.month}월 ${bi.day}일` : '';
+    const genderStr = bi.gender === 'male' ? '남' : bi.gender === 'female' ? '여' : '';
+
+    const sections: string[] = [];
+    sections.push(`═══ ${name}의 사주 풀이 ═══`);
+    if (dateStr) sections.push(`생년월일: ${dateStr} ${genderStr}`);
+    sections.push(`풀이 일시: ${new Date().toLocaleDateString('ko-KR')}`);
+    sections.push('');
+
+    const roomOrder: RoomId[] = ['synthesis', 'detail', 'luck', 'compatibility'];
+    let hasContent = false;
+    for (const rid of roomOrder) {
+      const cached = aiCacheRef.current[rid];
+      if (!cached) continue;
+      hasContent = true;
+      const room = ROOMS[rid];
+      sections.push(`\n── ${room?.name || rid} ──\n`);
+      sections.push(cached);
+    }
+
+    if (!hasContent) return false;
+
+    sections.push('\n\n─────────────────────────────');
+    sections.push('사주명리의 미궁 — Labyrinth of Four Pillars');
+
+    const fullText = sections.join('\n');
+    const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}_사주풀이_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return true;
+  }, []);
+
+  /** 현재 방에 AI 캐시가 있는지 */
+  const hasAiContent = !!aiCacheRef.current[currentRoomRef.current];
+
   return {
     lines,
     handleCommand,
@@ -612,5 +722,9 @@ export function useGame() {
     phase,
     userName: birthInfoRef.current.name || undefined,
     roomName: ROOMS[currentRoomRef.current]?.name || undefined,
+    currentRoom: currentRoomRef.current,
+    copyCurrentRoom,
+    exportAll,
+    hasAiContent,
   };
 }

@@ -171,25 +171,23 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
   const personality = ELEMENT_PERSONALITY[el];
 
   switch (roomId) {
-    case 'cave': {
+    case 'synthesis': {
       return [
         `── 핵심 요약 ──`,
         '',
         `일간: "${dm.korean}${elName.hanja}" · ${yy === '양' ? '양(陽)' : '음(陰)'} · "${personality.keyword}"`,
         `${saju.dayPillar.branch.animal}띠 · ${elName.korean}(${elName.hanja})의 기운`,
         '',
-        `── 세부 풀이 ──`,
+        `── 종합 풀이 ──`,
         '',
         personality.modernDesc,
-        '',
-        `연주는 자네가 자라온 환경을, 월주는 커리어랑 직업 방향을, 일주는 자네 자신과 파트너의 성향을, 시주는 노후와 인생 후반부를 담고 있거든.`,
         '',
         ...(occupation ? [`${name}의 직업 "${occupation}"을 사주 관점에서 보면, ${elName.korean}(${elName.hanja})의 기운이 일하는 방식에 깊이 배어 있어.`, ''] : []),
         `${yy === '양' ? '양(陽)의 기운이니까 회의에서 먼저 의견 내고 주도적으로 일을 이끄는 성향이지.' : '음(陰)의 기운이니까 깊이 관찰하고 신중하게 판단하는 성향이야. 조용하지만 결정적인 순간에 핵심을 딱 짚어내거든.'} 더 자세한 이야기는 각 방에서 들려줄게.`,
       ].join('\n');
     }
 
-    case 'elements': {
+    case 'detail': {
       const fe = saju.fiveElements;
       const dom = ELEMENT_NAMES[fe.dominant];
       const def = ELEMENT_NAMES[fe.deficient];
@@ -258,46 +256,6 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
         `${ELEMENT_LUCK_TIPS[saju.fiveElements.deficient]}`,
         '',
         `대운의 흐름을 아는 건 네비게이션 켜고 운전하는 것과 비슷해. 목적지를 바꿀 순 없지만, 최적의 경로는 찾을 수 있거든.`,
-      ].join('\n');
-    }
-
-    case 'synthesis': {
-      const fe = saju.fiveElements;
-      const dom = ELEMENT_NAMES[fe.dominant];
-      const def = ELEMENT_NAMES[fe.deficient];
-      const sorted = countTenGods(saju.tenGods);
-      const domGod = sorted[0]?.[0] || '비견';
-      const domGodInfo = TEN_GOD_MEANINGS[domGod];
-      const { currentAge, currentCycle } = getCurrentLuckInfo(saju);
-
-      return [
-        `── 핵심 요약 ──`,
-        '',
-        `일간: "${dm.korean}${elName.hanja}" · "${personality.keyword}"`,
-        `강한 오행: "${dom.korean}(${dom.hanja})" · 약한 오행: "${def.korean}(${def.hanja})"`,
-        `주요 십성: "${domGod}" · ${domGodInfo?.keyword || ''}`,
-        ...(currentCycle ? [`현재 대운: "${currentCycle.pillar.ganjiKorean}" (${currentCycle.startAge}-${currentCycle.endAge}세)`] : []),
-        '',
-        `── ${name}에게 전하는 이야기 ──`,
-        '',
-        `자네의 일간은 "${dm.korean}${elName.hanja}" — ${personality.keyword}의 기운이야.`,
-        '',
-        personality.modernDesc,
-        '',
-        `사주에서 가장 눈에 띄는 "${domGod}"(${domGodInfo?.keyword || ''})의 기운을 보면, ${domGodInfo?.career || ''} 이 기운을 잘 활용하는 게 커리어 성공의 열쇠가 될 거야.`,
-        '',
-        ...(occupation ? [`지금 "${occupation}"이라는 직업은 자네 사주랑 ${el === fe.dominant ? '잘 맞는 면이 있으니까 자신감을 가져도 돼.' : '보완적인 관계거든. 부족한 오행의 기운을 의식적으로 채워보게.'}`, ''] : []),
-        `오행을 보면, ${dom.korean}(${dom.hanja})이 넘치고 ${def.korean}(${def.hanja})이 부족해. ${ELEMENT_HEALTH[fe.deficient]}`,
-        '',
-        getRelationshipAdvice(marital, domGodInfo?.relationship || ''),
-        '',
-        currentCycle
-          ? `지금 ${currentAge}세, "${currentCycle.pillar.ganjiKorean}" 대운을 지나고 있거든. ${ELEMENT_NAMES[currentCycle.pillar.stem.element].korean}의 흐름이 일상에 영향을 미치고 있으니까, 이 기운에 맞춰서 커리어랑 재테크 전략을 좀 조정해보게.`
-          : `자네 대운은 아직 본격적으로 시작 전이거나, 큰 전환의 시기에 서 있는 거야.`,
-        '',
-        `── 마지막으로 ──`,
-        '',
-        `${def.korean}의 기운을 채우고, ${dom.korean}의 기운을 잘 다스리면서, "${domGod}"가 가리키는 길을 따라가보게. 사주는 정해진 운명이 아니라, 더 나은 선택을 위한 나침반 같은 거야. 오늘의 작은 실천이 내일의 큰 변화를 만들거든.`,
       ].join('\n');
     }
 

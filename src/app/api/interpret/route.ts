@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
-import { SYSTEM_PROMPT, getRoomPrompt } from '@/lib/ai/prompts';
+import { SYSTEM_PROMPT, FEW_SHOT_EXAMPLES, getRoomPrompt } from '@/lib/ai/prompts';
 import { getTemplateInterpretation } from '@/lib/ai/templates';
 import { SajuResult } from '@/lib/saju/types';
 import { logger } from '@/lib/logger';
@@ -66,6 +66,7 @@ async function streamOpenAI(userPrompt: string): Promise<ReadableStream> {
     stream: true,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
+      ...FEW_SHOT_EXAMPLES,
       { role: 'user', content: userPrompt },
     ],
   });
@@ -98,10 +99,17 @@ async function streamGemini(userPrompt: string): Promise<ReadableStream> {
   const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
   await logger.info('Gemini', 'Request', { model, userPrompt });
 
+  const fewShotContents = FEW_SHOT_EXAMPLES.map(ex => ({
+    role: ex.role === 'assistant' ? 'model' as const : 'user' as const,
+    parts: [{ text: ex.content }],
+  }));
+
   const stream = gemini!.models.generateContentStream({
     model,
+    config: { systemInstruction: SYSTEM_PROMPT },
     contents: [
-      { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${userPrompt}` }] },
+      ...fewShotContents,
+      { role: 'user', parts: [{ text: userPrompt }] },
     ],
   });
 

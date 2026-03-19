@@ -9,8 +9,8 @@ import { enterRoom, executeCommand, getExitLines } from '@/lib/mud/engine';
 import { ROOMS } from '@/lib/mud/rooms';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generatePillarLines } from '@/components/saju/PillarDisplay';
-import { generateElementChart, generateTenGodsChart, generateLuckTimeline, generateSynthesisCard, ChartLine } from '@/components/saju/Charts';
-import { BirthInfo, SajuResult, MaritalStatus } from '@/lib/saju/types';
+import { generateElementChart, generateTenGodsChart, generateLuckTimeline, generateSynthesisCard, generateElementTenGodsChart, ChartLine } from '@/components/saju/Charts';
+import { BirthInfo, SajuResult, MaritalStatus, CalendarType } from '@/lib/saju/types';
 
 const TITLE_ART_WIDE = [
   '',
@@ -59,24 +59,26 @@ const TITLE_ART_NARROW = [
 // 이전 단계 롤백 매핑 (모듈 레벨 상수)
 const PREV_PHASE_MAP: Record<string, GamePhase> = {
   date: 'name',
-  time: 'date',
+  calendar: 'date',
+  time: 'calendar',
   gender: 'time',
-  occupation: 'gender',
-  marriage: 'occupation',
+  marriage: 'gender',
   partner_date: 'partner_name',
-  partner_time: 'partner_date',
+  partner_calendar: 'partner_date',
+  partner_time: 'partner_calendar',
   partner_gender: 'partner_time',
 };
 
 const PHASE_PROMPTS: Record<string, string> = {
   name: '현자: "그대의 이름이 무엇인가?"',
   date: '현자: "생년월일을 알려주시오. (예: 1990-03-15)"',
+  calendar: '현자: "양력인가, 음력인가? (양력/음력, 엔터 시 양력)"',
   time: '현자: "태어난 시간은? (예: 14:30, 모르면 \'모름\')"',
   gender: '현자: "성별은? (남/여)"',
-  occupation: '현자: "그대의 직업은 무엇인가? (예: 개발자, 학생, 자영업)"',
   marriage: '현자: "혼인 여부를 알려주시오. (미혼/기혼/기타)"',
   partner_name: '현자: "상대방의 이름을 알려주시오."',
   partner_date: '현자: "상대방의 생년월일은? (예: 1992-05-20)"',
+  partner_calendar: '현자: "양력인가, 음력인가? (양력/음력, 엔터 시 양력)"',
   partner_time: '현자: "상대방이 태어난 시간은? (예: 08:00, 모르면 \'모름\')"',
   partner_gender: '현자: "상대방의 성별은? (남/여)"',
 };
@@ -86,6 +88,14 @@ function parseGender(s: string): 'male' | 'female' | null {
   const g = s.toLowerCase();
   if (g === '남' || g === '남자' || g === 'male' || g === 'm') return 'male';
   if (g === '여' || g === '여자' || g === 'female' || g === 'f') return 'female';
+  return null;
+}
+
+/** 달력 유형 문자열 파싱 (빈 문자열은 양력 기본값) */
+function parseCalendar(s: string): CalendarType | null {
+  const c = s.trim();
+  if (c === '' || c === '양력' || c === 'solar') return 'solar';
+  if (c === '음력' || c === 'lunar') return 'lunar';
   return null;
 }
 
@@ -132,7 +142,18 @@ function parsePartial(input: string): Partial<BirthInfo> {
     }
   }
 
-  // 3. 시간
+  // 3. 달력 유형 (양력/음력) — 선택사항, 미입력 시 양력
+  if (idx < tokens.length) {
+    const cal = parseCalendar(tokens[idx]);
+    if (cal) {
+      result.calendarType = cal;
+      idx++;
+    } else {
+      result.calendarType = 'solar'; // 기본값 양력
+    }
+  }
+
+  // 4. 시간
   if (idx < tokens.length) {
     const t = tokens[idx];
     if (t === '모름' || t.toLowerCase() === 'unknown') {
@@ -167,21 +188,11 @@ function parsePartial(input: string): Partial<BirthInfo> {
     }
   }
 
-  // 5+6. 남은 토큰: 마지막이 결혼상태이면 그 앞은 직업
+  // 5. 결혼상태
   if (idx < tokens.length) {
-    const lastToken = tokens[tokens.length - 1];
-    const marital = parseMarital(lastToken);
-    if (marital && tokens.length - idx >= 2) {
-      // 직업(중간) + 결혼(마지막)
-      result.occupation = tokens.slice(idx, tokens.length - 1).join(' ');
+    const marital = parseMarital(tokens[idx]);
+    if (marital) {
       result.maritalStatus = marital;
-    } else if (marital && tokens.length - idx === 1) {
-      // 토큰이 1개인데 결혼상태로 파싱됨 → 직업 없이 결혼만
-      // 하지만 "미혼"이 직업일 수도 있으니, 결혼으로 간주
-      result.maritalStatus = marital;
-    } else {
-      // 결혼상태가 아님 → 전부 직업
-      result.occupation = tokens.slice(idx).join(' ');
     }
   }
 
@@ -192,10 +203,10 @@ function parsePartial(input: string): Partial<BirthInfo> {
 function getNextMissingPhase(info: Partial<BirthInfo>): GamePhase {
   if (!info.name) return 'name';
   if (info.year === undefined) return 'date';
+  if (!info.calendarType) return 'calendar';
   // hour: undefined = 미입력, null = "모름" (채워진 상태)
   if (info.hour === undefined && !('hour' in info)) return 'time';
   if (!info.gender) return 'gender';
-  if (!info.occupation) return 'occupation';
   if (!info.maritalStatus) return 'marriage';
   return 'exploring';
 }
@@ -276,19 +287,21 @@ export function useGame() {
       addLine(line.text, line.type as 'text', { color: line.color });
     }
 
-    // 각 방별 시각적 차트 표시
+    // 사주 테이블은 항상 표시
     if (sajuRef.current) {
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+      // 모든 방에서 사주 테이블 노출
+      const pillarLines = generatePillarLines(sajuRef.current, isMobile) as ChartLine[];
+      for (const line of pillarLines) {
+        addLine(line.text, 'ascii', { color: line.color || 'text-yellow-300' });
+      }
+
+      // 방별 추가 차트 표시
       let chartLines: ChartLine[] = [];
       switch (roomId) {
-        case 'cave':
-          chartLines = generatePillarLines(sajuRef.current, isMobile) as ChartLine[];
-          break;
         case 'elements':
-          chartLines = generateElementChart(sajuRef.current, isMobile);
-          break;
-        case 'tenGods':
-          chartLines = generateTenGodsChart(sajuRef.current, isMobile);
+          chartLines = generateElementTenGodsChart(sajuRef.current, isMobile);
           break;
         case 'luck':
           chartLines = generateLuckTimeline(sajuRef.current);
@@ -340,9 +353,9 @@ export function useGame() {
     addLine('', 'text');
     addLine('  현자: "그대의 정보를 알려주시오."', 'system');
     addLine('', 'text');
-    addLine('  한 줄 입력: 이름 생년월일 시간 성별 직업 결혼', 'text');
-    addLine('  예) 홍길동 1990-03-15 14:30 남 개발자 미혼', 'text');
-    addLine('  예) 홍길동 1990.3.15 모름 여 학생 기혼', 'text');
+    addLine('  한 줄 입력: 이름 생년월일 [양력/음력] 시간 성별 결혼', 'text');
+    addLine('  예) 홍길동 1990-03-15 14:30 남 미혼', 'text');
+    addLine('  예) 홍길동 1990.3.15 음력 모름 여 기혼', 'text');
     addLine('', 'text');
     addLine('  또는 이름만 입력하면 하나씩 물어봅니다.', 'text');
     setPhase('name');
@@ -396,9 +409,9 @@ export function useGame() {
           const filled: string[] = [];
           if (parsed.name) filled.push(`이름: ${parsed.name}`);
           if (parsed.year !== undefined) filled.push(`생년월일: ${parsed.year}-${parsed.month}-${parsed.day}`);
+          if (parsed.calendarType) filled.push(`달력: ${parsed.calendarType === 'solar' ? '양력' : '음력'}`);
           if (parsed.hour !== undefined || parsed.hour === null) filled.push(`시간: ${parsed.hour === null ? '모름' : `${parsed.hour}:${String(parsed.minute || 0).padStart(2, '0')}`}`);
           if (parsed.gender) filled.push(`성별: ${parsed.gender === 'male' ? '남' : '여'}`);
-          if (parsed.occupation) filled.push(`직업: ${parsed.occupation}`);
           if (parsed.maritalStatus) filled.push(`결혼: ${parsed.maritalStatus === 'single' ? '미혼' : parsed.maritalStatus === 'married' ? '기혼' : '기타'}`);
           addLine(`  인식됨: ${filled.join(' · ')}`, 'text');
         }
@@ -416,6 +429,19 @@ export function useGame() {
         birthInfoRef.current.year = parseInt(match[1]);
         birthInfoRef.current.month = parseInt(match[2]);
         birthInfoRef.current.day = parseInt(match[3]);
+        addLine('', 'text');
+        addLine(`  ${PHASE_PROMPTS['calendar']}`, 'system');
+        setPhase('calendar');
+        break;
+      }
+
+      case 'calendar': {
+        const cal = parseCalendar(input);
+        if (!cal) {
+          addLine('  양력 또는 음력을 입력해주세요.', 'error');
+          return;
+        }
+        birthInfoRef.current.calendarType = cal;
         addLine('', 'text');
         addLine('  현자: "태어난 시간은? (예: 14:30, 모르면 \'모름\')"', 'system');
         setPhase('time');
@@ -452,14 +478,6 @@ export function useGame() {
           return;
         }
         addLine('', 'text');
-        addLine('  현자: "그대의 직업은 무엇인가? (예: 개발자, 학생, 자영업)"', 'system');
-        setPhase('occupation');
-        break;
-      }
-
-      case 'occupation': {
-        birthInfoRef.current.occupation = input.trim();
-        addLine('', 'text');
         addLine('  현자: "혼인 여부를 알려주시오. (미혼/기혼/기타)"', 'system');
         setPhase('marriage');
         break;
@@ -494,6 +512,19 @@ export function useGame() {
         partnerInfoRef.current.month = parseInt(match[2]);
         partnerInfoRef.current.day = parseInt(match[3]);
         addLine('', 'text');
+        addLine(`  ${PHASE_PROMPTS['partner_calendar']}`, 'system');
+        setPhase('partner_calendar');
+        break;
+      }
+
+      case 'partner_calendar': {
+        const cal = parseCalendar(input);
+        if (!cal) {
+          addLine('  양력 또는 음력을 입력해주세요.', 'error');
+          return;
+        }
+        partnerInfoRef.current.calendarType = cal;
+        addLine('', 'text');
         addLine(`  ${PHASE_PROMPTS['partner_time']}`, 'system');
         setPhase('partner_time');
         break;
@@ -525,7 +556,6 @@ export function useGame() {
           return;
         }
         partnerInfoRef.current.gender = g;
-        partnerInfoRef.current.occupation = '';
         partnerInfoRef.current.maritalStatus = 'etc';
 
         addLine('', 'text');

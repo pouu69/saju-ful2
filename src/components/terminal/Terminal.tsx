@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import TerminalLine, { LineData } from './TerminalLine';
 import TerminalInput from './TerminalInput';
 
@@ -14,6 +14,9 @@ interface TerminalProps {
   roomName?: string;
 }
 
+/** 자동 스크롤 판정: 하단에서 이 값(px) 이내면 "바닥에 있음" */
+const AUTO_SCROLL_THRESHOLD = 100;
+
 export default function Terminal({
   lines,
   onCommand,
@@ -24,8 +27,18 @@ export default function Terminal({
   roomName,
 }: TerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const userScrolledUp = useRef(false);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < AUTO_SCROLL_THRESHOLD;
+    userScrolledUp.current = !atBottom;
+  }, []);
 
   useEffect(() => {
+    // 사용자가 위로 스크롤하고 있으면 자동 스크롤 하지 않음
+    if (userScrolledUp.current) return;
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
@@ -65,6 +78,7 @@ export default function Terminal({
         {/* 터미널 내용 */}
         <div
           ref={scrollRef}
+          onScroll={handleScroll}
           className="terminal-content terminal-glow h-[calc(100%-36px)] overflow-y-auto p-5 pb-24 scrollbar-thin scroll-smooth cursor-text"
         >
           {lines.map(line => (

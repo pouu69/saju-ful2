@@ -1,4 +1,4 @@
-export type RoomId = 'entrance' | 'cave' | 'elements' | 'tenGods' | 'luck' | 'synthesis' | 'compatibility';
+export type RoomId = 'entrance' | 'cave' | 'elements' | 'luck' | 'synthesis' | 'compatibility';
 
 export interface RoomExit {
   direction: string;    // "동", "서", "남", "북"
@@ -21,8 +21,8 @@ export type CommandType =
   | { type: 'restart' }
   | { type: 'unknown'; raw: string };
 
-export type GamePhase = 'intro' | 'name' | 'date' | 'time' | 'gender' | 'occupation' | 'marriage' | 'exploring'
-  | 'partner_name' | 'partner_date' | 'partner_time' | 'partner_gender';
+export type GamePhase = 'intro' | 'name' | 'date' | 'calendar' | 'time' | 'gender' | 'marriage' | 'exploring'
+  | 'partner_name' | 'partner_date' | 'partner_calendar' | 'partner_time' | 'partner_gender';
 
 export interface GameState {
   phase: GamePhase;

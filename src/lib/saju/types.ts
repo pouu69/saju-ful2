@@ -100,6 +100,9 @@ export type Gender = 'male' | 'female';
 // 결혼 상태
 export type MaritalStatus = 'single' | 'married' | 'etc';
 
+// 달력 유형 (양력/음력)
+export type CalendarType = 'solar' | 'lunar';
+
 // 사주 계산 입력
 export interface BirthInfo {
   name: string;
@@ -109,8 +112,9 @@ export interface BirthInfo {
   hour: number | null;   // null = 모름
   minute: number;
   gender: Gender;
-  occupation: string;        // 직업 (자유 입력)
+  occupation?: string;       // 직업 (자유 입력, 선택사항)
   maritalStatus: MaritalStatus;  // 결혼 유무
+  calendarType: CalendarType;    // 양력/음력
 }
 
 // 사주 전체 결과

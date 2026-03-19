@@ -104,7 +104,17 @@ export function generateElementChart(saju: SajuResult, compact: boolean = false)
 }
 
 // ────────────────────────────────────────────
-// 십성의 방
+// 오행·십성 통합 차트
+// ────────────────────────────────────────────
+
+export function generateElementTenGodsChart(saju: SajuResult, compact: boolean = false): ChartLine[] {
+  const elementLines = generateElementChart(saju, compact);
+  const tenGodsLines = generateTenGodsChart(saju, compact);
+  return [...elementLines, ...tenGodsLines];
+}
+
+// ────────────────────────────────────────────
+// 십성 차트 (내부용)
 // ────────────────────────────────────────────
 
 export function generateTenGodsChart(saju: SajuResult, compact: boolean = false): ChartLine[] {

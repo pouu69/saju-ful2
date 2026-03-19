@@ -1,24 +1,5 @@
 import { CommandType, RoomExit } from './types';
 
-const DIRECTION_MAP: Record<string, string> = {
-  // 한글
-  '동': '동', '서': '서', '남': '남', '북': '북',
-  // 단축키
-  'ㄷ': '동', 'ㅅ': '서', 'ㄴ': '남', 'ㅂ': '북',
-  // 영문
-  'east': '동', 'west': '서', 'south': '남', 'north': '북',
-  'e': '동', 'w': '서', 's': '남', 'n': '북',
-};
-
-const ROOM_NAME_MAP: Record<string, string> = {
-  '오행': '동',
-  '십성': '서',
-  '운세': '남',
-  '종합': '북',
-  '궁합': '위',
-  '동굴': '남',  // synthesis → cave 방향
-};
-
 export function parseCommand(input: string, exits: RoomExit[]): CommandType {
   const trimmed = input.trim().toLowerCase();
 
@@ -39,22 +20,28 @@ export function parseCommand(input: string, exits: RoomExit[]): CommandType {
     return { type: 'restart' };
   }
 
-  // 숫자 선택 (1, 2, 3, 4)
+  // 숫자 선택 (1, 2, 3, 4, ...)
   const num = parseInt(trimmed);
   if (!isNaN(num) && num >= 1 && num <= exits.length) {
     return { type: 'move', direction: exits[num - 1].direction };
   }
 
-  // 방향 매핑
-  const direction = DIRECTION_MAP[trimmed];
-  if (direction) {
-    return { type: 'move', direction };
-  }
+  // 방 이름으로 이동 (편의)
+  const roomNameMap: Record<string, string> = {
+    '오행': 'elements',
+    '십성': 'elements',
+    '운세': 'luck',
+    '종합': 'synthesis',
+    '궁합': 'compatibility',
+    '동굴': 'cave',
+  };
 
-  // 방 이름 매핑
-  const roomDirection = ROOM_NAME_MAP[trimmed];
-  if (roomDirection) {
-    return { type: 'move', direction: roomDirection };
+  const targetRoom = roomNameMap[trimmed];
+  if (targetRoom) {
+    const exit = exits.find(e => e.roomId === targetRoom);
+    if (exit) {
+      return { type: 'move', direction: exit.direction };
+    }
   }
 
   return { type: 'unknown', raw: input };

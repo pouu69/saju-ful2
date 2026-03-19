@@ -180,7 +180,7 @@ export default function TerminalLine({ line, onTypingComplete, userName }: Termi
     );
   }
 
-  const skipHighlight = line.type === 'ascii' || line.type === 'input' || line.type === 'error';
+  const skipHighlight = line.type === 'input' || line.type === 'error';
 
   return (
     <div className={`whitespace-pre-wrap line-enter ${styleClass}`}>

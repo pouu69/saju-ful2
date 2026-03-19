@@ -1,4 +1,4 @@
-import { calculateSaju } from '@fullstackfamily/manseryeok';
+import { calculateSaju, lunarToSolar } from '@fullstackfamily/manseryeok';
 import { HEAVENLY_STEMS, EARTHLY_BRANCHES, STEM_KOREAN_TO_INDEX, BRANCH_KOREAN_TO_INDEX } from './constants';
 import { Pillar, BirthInfo, SajuResult } from './types';
 import { calculateFiveElementBalance } from './elements';
@@ -33,7 +33,16 @@ export function parseGanji(ganjiKorean: string, ganjiHanja: string): Pillar {
  * 사주팔자 전체 계산
  */
 export function calculateFullSaju(birthInfo: BirthInfo): SajuResult {
-  const { year, month, day, hour, minute, gender } = birthInfo;
+  let { year, month, day } = birthInfo;
+  const { hour, minute, gender, calendarType } = birthInfo;
+
+  // 음력인 경우 양력으로 변환
+  if (calendarType === 'lunar') {
+    const converted = lunarToSolar(year, month, day);
+    year = converted.solar.year;
+    month = converted.solar.month;
+    day = converted.solar.day;
+  }
 
   // 1. manseryeok으로 사주팔자 계산
   const hasHour = hour !== null;

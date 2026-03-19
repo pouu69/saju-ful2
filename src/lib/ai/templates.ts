@@ -104,6 +104,50 @@ const TEN_GOD_MEANINGS: Record<string, { keyword: string; desc: string; career: 
   },
 };
 
+/** 오행별 개운법 (부족한 오행 보충) */
+const ELEMENT_LUCK_TIPS: Record<FiveElement, string> = {
+  wood: '초록색 계열 옷이나 소품을 가까이하고, 동쪽 방향을 의식해보게. 나무가 많은 공원 산책이나 식물 키우기도 좋아. 새벽 시간대에 활동하면 목(木)의 기운을 받을 수 있거든. 식단엔 푸른 잎채소를 좀 더 챙기게.',
+  fire: '빨간색이나 보라색 계열을 활용하고, 남쪽 방향이 좋아. 햇볕을 자주 쬐고, 촛불 명상이나 따뜻한 차 한 잔의 여유를 가져보게. 사람들과 어울리는 활동이 화(火)의 기운을 살려주거든.',
+  earth: '노란색, 갈색 계열이 좋고, 집 중앙을 정돈하는 게 도움이 돼. 도자기나 흙과 관련된 취미 활동도 좋아. 식단에 뿌리채소나 곡물을 챙기고, 규칙적인 생활 리듬을 만드는 게 토(土)의 기운을 보충하는 핵심이야.',
+  metal: '흰색, 금색 계열을 가까이하고, 서쪽 방향을 의식해보게. 금속 소재 액세서리(시계, 반지 등)를 착용하는 것도 좋아. 정리정돈이나 미니멀한 환경을 만드는 게 금(金)의 기운과 잘 맞거든.',
+  water: '검정색, 남색 계열이 좋고, 북쪽 방향을 활용해보게. 물을 자주 마시고, 수영이나 온천 같은 물과 관련된 활동이 도움이 돼. 저녁 시간에 명상이나 독서로 내면을 채우는 게 수(水)의 기운을 보충하는 방법이야.',
+};
+
+/** 궁합 개운법 (두 사람의 오행 조합별) — 대칭 행렬 */
+const COUPLE_LUCK_TIPS: Record<FiveElement, Record<FiveElement, string>> = {
+  wood: {} as Record<FiveElement, string>,
+  fire: {} as Record<FiveElement, string>,
+  earth: {} as Record<FiveElement, string>,
+  metal: {} as Record<FiveElement, string>,
+  water: {} as Record<FiveElement, string>,
+};
+
+function setCoupleTip(a: FiveElement, b: FiveElement, tip: string) {
+  COUPLE_LUCK_TIPS[a][b] = tip;
+  COUPLE_LUCK_TIPS[b][a] = tip;
+}
+
+// 동일 오행
+setCoupleTip('wood', 'wood', '둘 다 목(木)이니까, 함께 등산이나 숲길 산책을 하면 에너지가 올라가. 초록색 인테리어를 공유 공간에 두는 것도 좋지.');
+setCoupleTip('fire', 'fire', '둘 다 화(火)니까 열정이 넘치는데, 과열되지 않게 가끔 조용한 카페에서 대화하는 시간을 가져보게.');
+setCoupleTip('earth', 'earth', '둘 다 토(土)니까 안정적인 관계야. 함께 집 꾸미기나 요리하는 시간을 늘려보게.');
+setCoupleTip('metal', 'metal', '둘 다 금(金)이니까 깔끔한 걸 좋아하지. 함께 공간 정리하거나 미니멀 라이프를 추구해보게.');
+setCoupleTip('water', 'water', '둘 다 수(水)니까 지적인 활동이 잘 맞아. 함께 독서 모임이나 전시회 관람을 즐겨보게.');
+
+// 상생 조합
+setCoupleTip('wood', 'fire', '목생화(木生火) 조합이라 함께 요리하거나 캠핑에서 불멍하는 게 두 사람의 기운을 살려줘.');
+setCoupleTip('fire', 'earth', '화생토(火生土) 조합이라 함께 맛집 탐방이나 홈파티를 즐기는 게 관계에 좋아.');
+setCoupleTip('earth', 'metal', '토생금(土生金) 조합이라 함께 보석/액세서리 쇼핑이나 클래식 공연 관람이 좋아.');
+setCoupleTip('metal', 'water', '금생수(金生水) 조합이라 수영, 스파, 바다 여행 같은 물 관련 활동이 두 사람의 기운을 살려줘.');
+setCoupleTip('water', 'wood', '수생목(水生木) 조합이라 물가에서 보내는 시간이 좋아. 해변 산책이나 수족관 데이트를 추천하지.');
+
+// 상극 조합
+setCoupleTip('wood', 'earth', '함께 텃밭 가꾸기나 도자기 만들기 같은 활동이 좋아. 자연 속에서 보내는 시간이 관계를 안정시켜줄 거야.');
+setCoupleTip('wood', 'metal', '서로 다른 기운이니까, 음악 감상이나 미술관 방문 같은 감각적인 활동으로 균형을 맞춰보게.');
+setCoupleTip('fire', 'metal', '서로 자극이 되는 조합이야. 함께 운동하거나 경쟁적인 게임을 하면 오히려 관계가 좋아지거든.');
+setCoupleTip('fire', 'water', '반대 기운이라 균형이 중요해. 온천 여행이나 따뜻한 음식을 함께 즐기는 게 좋지.');
+setCoupleTip('earth', 'water', '서로 다른 기운이니까, 여행을 함께 계획하고 다니는 게 관계의 균형을 맞춰줄 거야.');
+
 /** 결혼 상태에 따른 관계 조언 분기 */
 function getRelationshipAdvice(marital: MaritalStatus, tenGodRelationship: string): string {
   switch (marital) {
@@ -151,23 +195,6 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
       const def = ELEMENT_NAMES[fe.deficient];
       const domP = ELEMENT_PERSONALITY[fe.dominant];
 
-      return [
-        `── 핵심 요약 ──`,
-        '',
-        `강한 오행: "${dom.korean}(${dom.hanja})" · 약한 오행: "${def.korean}(${def.hanja})"`,
-        `성향 키워드: "${domP.keyword}"`,
-        '',
-        `── 세부 풀이 ──`,
-        '',
-        `${dom.korean}(${dom.hanja})이 강하니까, ${domP.modernDesc}`,
-        '',
-        `${def.korean}(${def.hanja})이 부족한 편이거든. ${ELEMENT_HEALTH[fe.deficient]}`,
-        '',
-        `현대 사회에서 오행 균형을 맞추는 건 결국 일과 삶의 균형을 찾는 것과 같아. 강한 오행은 자네의 무기고, 약한 오행은 보완할 부분이니까, 의식적으로 균형 맞추는 습관을 들여보게.`,
-      ].join('\n');
-    }
-
-    case 'tenGods': {
       const sorted = countTenGods(saju.tenGods);
       const dominant = sorted[0]?.[0] || '비견';
       const domInfo = TEN_GOD_MEANINGS[dominant];
@@ -177,20 +204,27 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
       return [
         `── 핵심 요약 ──`,
         '',
+        `강한 오행: "${dom.korean}(${dom.hanja})" · 약한 오행: "${def.korean}(${def.hanja})"`,
         `주요 십성: "${dominant}" · ${domInfo?.keyword || ''}`,
         ...(second ? [`보조 십성: "${second}" · ${secInfo?.keyword || ''}`] : []),
         '',
-        `── 세부 풀이 ──`,
+        `── 오행과 십성의 역학 ──`,
         '',
-        `"${dominant}"의 기운이 가장 강해. ${domInfo?.desc || ''}`,
+        `${dom.korean}(${dom.hanja})이 강하니까, ${domP.modernDesc}`,
         '',
-        `커리어 쪽으로 보면, ${domInfo?.career || ''}`,
+        `여기에 "${dominant}"의 기운이 가장 강하게 작동하고 있어. ${domInfo?.desc || ''} ${domInfo?.career || ''}`,
+        '',
+        ...(secInfo ? [`"${second}"의 기운도 같이 작용하고 있는데, ${secInfo.desc} ${secInfo.career}`, ''] : []),
+        `── 커리어·재물·관계 ──`,
         '',
         ...(occupation ? [`지금 하고 있는 "${occupation}"이랑 "${dominant}"의 관계를 살펴보면, 이 기운을 잘 활용하고 있는지 한번 돌아보는 게 좋겠어.`, ''] : []),
         getRelationshipAdvice(marital, domInfo?.relationship || ''),
         '',
-        ...(secInfo ? [`"${second}"의 기운도 같이 작용하고 있는데, ${secInfo.desc} ${secInfo.career}`, ''] : []),
-        `십성의 조합이 자네의 커리어랑 인간관계 패턴을 만들어내고 있거든. 이 흐름을 이해하면 직장에서의 갈등도, 관계에서의 어려움도 새로운 시각으로 바라볼 수 있을 거야.`,
+        `── 균형과 개운 ──`,
+        '',
+        `${def.korean}(${def.hanja})이 부족한 편이거든. ${ELEMENT_HEALTH[fe.deficient]}`,
+        '',
+        `오행의 균형을 맞추면서 십성의 에너지를 잘 활용하는 게 핵심이야. 강한 오행은 자네의 무기고, 약한 오행은 보완할 부분이니까, 의식적으로 균형 맞추는 습관을 들여보게.`,
       ].join('\n');
     }
 
@@ -217,6 +251,11 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
         ...(occupation ? [`"${occupation}" 분야에서 올해는 ${ELEMENT_NAMES[yl.pillar.stem.element].korean}의 기운에 맞춰 전략을 세워보는 게 좋겠어.`] : []),
         ...(marital === 'single' ? ['올해 운이 연애운에도 영향을 미치니까, 새로운 만남의 기회를 놓치지 말게.'] : []),
         ...(marital === 'married' ? ['가정에서는 배우자랑 소통에 좀 더 신경 쓰는 한 해가 되면 좋겠어.'] : []),
+        '',
+        `── 개운법 ──`,
+        '',
+        `${ELEMENT_NAMES[saju.fiveElements.deficient].korean}(${ELEMENT_NAMES[saju.fiveElements.deficient].hanja})의 기운을 보충하는 게 올해의 개운 포인트야.`,
+        `${ELEMENT_LUCK_TIPS[saju.fiveElements.deficient]}`,
         '',
         `대운의 흐름을 아는 건 네비게이션 켜고 운전하는 것과 비슷해. 목적지를 바꿀 순 없지만, 최적의 경로는 찾을 수 있거든.`,
       ].join('\n');
@@ -291,6 +330,12 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
           : `두 사람은 서로 자극하는 "상극" 관계인데, 나쁜 게 아니야. 오히려 서로에게 성장의 동력이 되거든. 다만 갈등 상황에서 한 발짝 물러서는 여유가 필요하지.`,
         '',
         `${name}의 "${personality.keyword}" 성향과 ${partnerName}의 "${partnerPersonality.keyword}" 성향이 만나면, 서로 다른 강점을 가진 팀이 되는 거야.`,
+        '',
+        `── 궁합 개운법 ──`,
+        '',
+        `두 사람의 관계를 더 좋게 만들려면, 서로에게 부족한 오행을 채워주는 게 좋아.`,
+        `${name}에게는 ${ELEMENT_NAMES[saju.fiveElements.deficient].korean}(${ELEMENT_NAMES[saju.fiveElements.deficient].hanja})의 기운이 필요하고, ${partnerName}에게는 ${ELEMENT_NAMES[partnerSaju.fiveElements.deficient].korean}(${ELEMENT_NAMES[partnerSaju.fiveElements.deficient].hanja})의 기운이 필요하거든.`,
+        `${COUPLE_LUCK_TIPS[el][partnerEl] || '함께 자연 속에서 시간을 보내는 게 두 사람의 기운 균형에 좋아.'}`,
         '',
         `── 현자의 한마디 ──`,
         '',

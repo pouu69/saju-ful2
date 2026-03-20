@@ -62,6 +62,11 @@ export function calculateLuckCycles(
     if (nextJeolgi) {
       const jDate = new Date(birthYear, nextJeolgi.month - 1, nextJeolgi.day);
       daysDiff = Math.ceil((jDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
+    } else {
+      // 대설(12/7) 이후 생: 다음 해 소한으로 계산
+      const nextYearJeolgi = JEOLGI_APPROX[0]; // 소한
+      const jDate = new Date(birthYear + 1, nextYearJeolgi.month - 1, nextYearJeolgi.day);
+      daysDiff = Math.ceil((jDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
     }
   } else {
     // 역행: 생일 이전 가장 가까운 절기
@@ -72,6 +77,11 @@ export function calculateLuckCycles(
     if (prevJeolgis.length > 0) {
       const lastJeolgi = prevJeolgis[prevJeolgis.length - 1];
       const jDate = new Date(birthYear, lastJeolgi.month - 1, lastJeolgi.day);
+      daysDiff = Math.ceil((birthDate.getTime() - jDate.getTime()) / (1000 * 60 * 60 * 24));
+    } else {
+      // 소한(1/6) 이전 생: 전년 대설로 계산
+      const prevYearJeolgi = JEOLGI_APPROX[JEOLGI_APPROX.length - 1]; // 대설
+      const jDate = new Date(birthYear - 1, prevYearJeolgi.month - 1, prevYearJeolgi.day);
       daysDiff = Math.ceil((birthDate.getTime() - jDate.getTime()) / (1000 * 60 * 60 * 24));
     }
   }

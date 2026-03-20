@@ -5,6 +5,7 @@
 
 import { SajuResult, FiveElement } from '@/lib/saju/types';
 import { ELEMENT_NAMES } from '@/lib/saju/constants';
+import { countTenGods } from '@/lib/saju/helpers';
 import { getZodiacArt } from './zodiacArt';
 
 // ── Canvas 렌더링 설정 ──
@@ -30,6 +31,9 @@ const ZODIAC_LABEL_COLOR = '#66DDCC'; // 동물 이름줄 — 밝은 청록
 const WISDOM_TITLE_COLOR = '#CC88FF'; // 현자의 한마디 제목 — 보라
 const WISDOM_TEXT_COLOR = '#E8D8C0';  // 현자의 한마디 본문 — 아이보리
 const PILLAR_HEADER_COLOR = '#8A7848';// 기둥 헤더 — 갈색
+const SUMMARY_TITLE_COLOR = '#CC88FF';// 요약 섹션 제목 — 보라
+const SUMMARY_LABEL_COLOR = '#8A7848';// 요약 라벨 — 갈색
+const SINSAL_COLOR = '#FF8866';       // 신살 — 주황
 const FOOTER_COLOR = '#6A5828';       // 하단 — 어두운 갈색
 
 // 오행별 색상 (기둥 천간/지지에 적용)
@@ -170,6 +174,14 @@ export async function renderCardToPng(
     ...(saju.hourPillar ? [{ label: '시주', p: saju.hourPillar }] : []),
   ];
 
+  // 사주 요약 데이터 준비
+  const fe = saju.fiveElements;
+  const domEl = ELEMENT_NAMES[fe.dominant];
+  const defEl = ELEMENT_NAMES[fe.deficient];
+  const sortedGods = countTenGods(saju.tenGods);
+  const topGods = sortedGods.slice(0, 2).map(([n, c]) => `${n}(${c})`).join(', ');
+  const sinsals = saju.sinsals.slice(0, 3); // 최대 3개
+
   // 먼저 높이를 계산하기 위해 임시 캔버스로 measureText
   const tmpCanvas = document.createElement('canvas');
   tmpCanvas.width = 1; tmpCanvas.height = 1;
@@ -181,14 +193,17 @@ export async function renderCardToPng(
   const wrappedWisdom = wrapTextPx(tmpCtx, wisdom, wisdomMaxW).slice(0, MAX_WISDOM_LINES);
 
   // 섹션별 높이 계산
-  const titleH = CARD_PAD_Y + LINE_HEIGHT * 3 + CARD_PAD_Y;  // 제목 2줄 + 여백
-  const infoH = CARD_PAD_Y + LINE_HEIGHT * 2 + CARD_PAD_Y;   // 정보 2줄
+  const titleH = CARD_PAD_Y + LINE_HEIGHT * 3 + CARD_PAD_Y;
+  const infoH = CARD_PAD_Y + LINE_HEIGHT * 2 + CARD_PAD_Y;
   const artH = CARD_PAD_Y + LINE_HEIGHT * zodiacArt.length + CARD_PAD_Y;
   const wisdomH = CARD_PAD_Y + LINE_HEIGHT + 8 + LINE_HEIGHT * wrappedWisdom.length + CARD_PAD_Y;
-  const pillarH = CARD_PAD_Y + LINE_HEIGHT * 3 + CARD_PAD_Y;  // 헤더 + 천간 + 지지
+  const pillarH = CARD_PAD_Y + LINE_HEIGHT * 3 + CARD_PAD_Y;
+  // 요약: 제목 + 강한오행 + 약한오행 + 십성 + 신살(있으면)
+  const summaryLineCount = 3 + (sinsals.length > 0 ? 1 : 0);
+  const summaryH = CARD_PAD_Y + LINE_HEIGHT + 8 + LINE_HEIGHT * summaryLineCount + CARD_PAD_Y;
   const footerH = CARD_PAD_Y + LINE_HEIGHT * 2 + CARD_PAD_Y;
 
-  const totalCardH = titleH + infoH + artH + wisdomH + pillarH + footerH;
+  const totalCardH = titleH + infoH + artH + wisdomH + pillarH + summaryH + footerH;
   const canvasW = CARD_INNER_W + MARGIN * 2;
   const canvasH = totalCardH + MARGIN * 2;
 
@@ -319,7 +334,45 @@ export async function renderCardToPng(
   drawHLine(ctx, cardX, curY, cardW, BORDER_COLOR, 'double');
   curY += SECTION_GAP;
 
-  // ── 6) 하단 ──
+  // ── 6) 사주 요약 (오행·십성·신살) ──
+  curY += CARD_PAD_Y * 0.5;
+  drawCentered(ctx, '─── 사주 요약 ───', centerX, curY, SUMMARY_TITLE_COLOR);
+  curY += LINE_HEIGHT + 8;
+
+  // 강한 오행
+  const domLabel = '강한 오행  ';
+  const domValue = `${domEl.korean}(${domEl.hanja})`;
+  drawLeft(ctx, domLabel, leftX, curY, SUMMARY_LABEL_COLOR);
+  drawLeft(ctx, domValue, leftX + ctx.measureText(domLabel).width, curY, ELEMENT_COLORS[fe.dominant]);
+  curY += LINE_HEIGHT;
+
+  // 약한 오행
+  const defLabel = '약한 오행  ';
+  const defValue = `${defEl.korean}(${defEl.hanja})`;
+  drawLeft(ctx, defLabel, leftX, curY, SUMMARY_LABEL_COLOR);
+  drawLeft(ctx, defValue, leftX + ctx.measureText(defLabel).width, curY, ELEMENT_COLORS[fe.deficient]);
+  curY += LINE_HEIGHT;
+
+  // 주요 십성
+  const godLabel = '주요 십성  ';
+  drawLeft(ctx, godLabel, leftX, curY, SUMMARY_LABEL_COLOR);
+  drawLeft(ctx, topGods, leftX + ctx.measureText(godLabel).width, curY, TITLE_COLOR);
+  curY += LINE_HEIGHT;
+
+  // 신살 (있으면)
+  if (sinsals.length > 0) {
+    const sinsalLabel = '신살       ';
+    const sinsalValue = sinsals.map(s => s.name).join(', ');
+    drawLeft(ctx, sinsalLabel, leftX, curY, SUMMARY_LABEL_COLOR);
+    drawLeft(ctx, sinsalValue, leftX + ctx.measureText(sinsalLabel).width, curY, SINSAL_COLOR);
+    curY += LINE_HEIGHT;
+  }
+
+  curY += CARD_PAD_Y * 0.5;
+  drawHLine(ctx, cardX, curY, cardW, BORDER_COLOR, 'double');
+  curY += SECTION_GAP;
+
+  // ── 7) 하단 ──
   curY += CARD_PAD_Y * 0.5;
   const dateNow = new Date().toLocaleDateString('ko-KR');
   drawCentered(ctx, `풀이일: ${dateNow}`, centerX, curY, FOOTER_COLOR);

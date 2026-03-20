@@ -135,7 +135,7 @@ export function generatePillarLines(saju: SajuResult, compact: boolean = false):
 
   // ── 일간 요약 ──
   const dmSymbol = EL_SYMBOL[saju.dayMaster.element];
-  lines.push({ text: `  ${dmSymbol} 일간 ${saju.dayMaster.korean}(${saju.dayMaster.hanja}) · ${dmEl.korean}(${dmEl.hanja}) · ${yinyang} · ${d.branch.animal}띠`, color: ACCENT });
+  lines.push({ text: `  ${dmSymbol} 일간 ${saju.dayMaster.korean}(${saju.dayMaster.hanja}) · ${dmEl.korean}(${dmEl.hanja}) · ${yinyang} · ${y.branch.animal}띠`, color: ACCENT });
   lines.push({ text: '' });
 
   // ── 사주 테이블 (확장) ──
@@ -308,7 +308,7 @@ export function generatePillarLines(saju: SajuResult, compact: boolean = false):
   const ilganBlock: PillarLine[] = [];
   ilganBlock.push({ text: '── 일간(日干) ──', color: HEADER });
   ilganBlock.push({ text: `${saju.dayMaster.korean}(${saju.dayMaster.hanja}) ${dmEl.korean}(${dmEl.hanja}) ${yinyang}`, color: ACCENT });
-  ilganBlock.push({ text: `${d.branch.animal}띠 · ${d.ganjiKorean}(${d.ganjiHanja})일주`, color: ACCENT });
+  ilganBlock.push({ text: `${y.branch.animal}띠 · ${d.ganjiKorean}(${d.ganjiHanja})일주`, color: ACCENT });
   const dmScore = fe[saju.dayMaster.element] as number;
   const dmPct = totalScore > 0 ? Math.round((dmScore / totalScore) * 100) : 0;
   const strength = dmPct >= 30 ? '신강(身強)' : dmPct >= 15 ? '중화(中和)' : '신약(身弱)';

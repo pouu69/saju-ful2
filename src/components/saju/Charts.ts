@@ -1,5 +1,5 @@
 import { SajuResult, FiveElement } from '@/lib/saju/types';
-import { ELEMENT_NAMES } from '@/lib/saju/constants';
+import { ELEMENT_NAMES, ELEMENT_HEX } from '@/lib/saju/constants';
 import { countTenGods, getCurrentLuckInfo } from '@/lib/saju/helpers';
 import { padKr } from '@/lib/utils/string';
 
@@ -9,14 +9,10 @@ export interface ChartLine {
   color?: string;
 }
 
-/** 오행별 색상 */
-const ELEMENT_COLORS: Record<FiveElement, string> = {
-  wood:  'text-[#44cc44]',
-  fire:  'text-[#ff5544]',
-  earth: 'text-[#ccaa44]',
-  metal: 'text-[#dddddd]',
-  water: 'text-[#4488ff]',
-};
+/** 오행별 Tailwind 색상 클래스 (공유 hex에서 파생) */
+const ELEMENT_COLORS: Record<FiveElement, string> = Object.fromEntries(
+  Object.entries(ELEMENT_HEX).map(([k, v]) => [k, `text-[${v}]`])
+) as Record<FiveElement, string>;
 
 const HEADER = 'text-[#48B8A8]';
 const LABEL = 'text-[#8A7848]';
@@ -256,7 +252,7 @@ export function generateSynthesisCard(saju: SajuResult, compact: boolean = false
   // 기본 정보 블록
   const infoBlock: ChartLine[] = [];
   infoBlock.push({ text: '── 기본 정보 ──', color: HEADER });
-  infoBlock.push({ text: `일간     ${dm.korean}${dmEl.hanja}(${dm.yinYang === 'yang' ? '양' : '음'}) · ${saju.dayPillar.branch.animal}띠`, color: ELEMENT_COLORS[dm.element] });
+  infoBlock.push({ text: `일간     ${dm.korean}${dmEl.hanja}(${dm.yinYang === 'yang' ? '양' : '음'}) · ${saju.yearPillar.branch.animal}띠`, color: ELEMENT_COLORS[dm.element] });
   infoBlock.push({ text: `강한오행 ${domEl.korean}(${domEl.hanja})`, color: ELEMENT_COLORS[fe.dominant] });
   infoBlock.push({ text: `약한오행 ${defEl.korean}(${defEl.hanja})`, color: ELEMENT_COLORS[fe.deficient] });
   infoBlock.push({ text: `주요십성 ${topGod}` });

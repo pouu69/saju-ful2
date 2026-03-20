@@ -283,8 +283,7 @@ export function useGame() {
       },
       () => {
         aiCacheRef.current[roomId] = fullText;
-        forceRender(n => n + 1);
-        showExits(roomId);
+        showExits(roomId); // addLine이 state 업데이트 → 리렌더 트리거
       },
       (error) => {
         addLine(`  오류: ${error}`, 'error');

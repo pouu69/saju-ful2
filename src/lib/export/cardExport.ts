@@ -3,8 +3,8 @@
  * Canvas 그리기 프리미티브로 카드 렌더링 → PNG 다운로드
  */
 
-import { SajuResult, FiveElement } from '@/lib/saju/types';
-import { ELEMENT_NAMES } from '@/lib/saju/constants';
+import { SajuResult } from '@/lib/saju/types';
+import { ELEMENT_NAMES, ELEMENT_HEX } from '@/lib/saju/constants';
 import { countTenGods } from '@/lib/saju/helpers';
 import { getZodiacArt } from './zodiacArt';
 
@@ -36,14 +36,8 @@ const SUMMARY_LABEL_COLOR = '#8A7848';// 요약 라벨 — 갈색
 const SINSAL_COLOR = '#FF8866';       // 신살 — 주황
 const FOOTER_COLOR = '#6A5828';       // 하단 — 어두운 갈색
 
-// 오행별 색상 (기둥 천간/지지에 적용)
-const ELEMENT_COLORS: Record<FiveElement, string> = {
-  wood:  '#44cc44',  // 녹색
-  fire:  '#ff5544',  // 적색
-  earth: '#ccaa44',  // 황금
-  metal: '#dddddd',  // 은색
-  water: '#4488ff',  // 청색
-};
+// 오행별 색상 (공유 상수에서 가져옴)
+const ELEMENT_COLORS = ELEMENT_HEX;
 
 const MAX_WISDOM_LINES = 8;
 const FONT_FAMILY = '"D2Coding", "D2 Coding", "Noto Sans Mono CJK KR", monospace';
@@ -129,6 +123,21 @@ function drawLeft(
 ) {
   ctx.fillStyle = color;
   ctx.fillText(text, x, y);
+}
+
+/** 라벨 + 값 한 줄 그리기 (고정 valueX 정렬) */
+function drawLabelValue(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  value: string,
+  x: number,
+  valueX: number,
+  y: number,
+  labelColor: string,
+  valueColor: string,
+) {
+  drawLeft(ctx, label, x, y, labelColor);
+  drawLeft(ctx, value, valueX, y, valueColor);
 }
 
 /** 가로 구분선 그리기 */
@@ -339,32 +348,18 @@ export async function renderCardToPng(
   drawCentered(ctx, '─── 사주 요약 ───', centerX, curY, SUMMARY_TITLE_COLOR);
   curY += LINE_HEIGHT + 8;
 
-  // 강한 오행
-  const domLabel = '강한 오행  ';
-  const domValue = `${domEl.korean}(${domEl.hanja})`;
-  drawLeft(ctx, domLabel, leftX, curY, SUMMARY_LABEL_COLOR);
-  drawLeft(ctx, domValue, leftX + ctx.measureText(domLabel).width, curY, ELEMENT_COLORS[fe.dominant]);
+  // 고정 값 컬럼 위치 (가장 긴 라벨 "주요 십성" 기준)
+  const valueX = leftX + ctx.measureText('주요 십성  ').width;
+
+  drawLabelValue(ctx, '강한 오행', `${domEl.korean}(${domEl.hanja})`, leftX, valueX, curY, SUMMARY_LABEL_COLOR, ELEMENT_COLORS[fe.dominant]);
+  curY += LINE_HEIGHT;
+  drawLabelValue(ctx, '약한 오행', `${defEl.korean}(${defEl.hanja})`, leftX, valueX, curY, SUMMARY_LABEL_COLOR, ELEMENT_COLORS[fe.deficient]);
+  curY += LINE_HEIGHT;
+  drawLabelValue(ctx, '주요 십성', topGods, leftX, valueX, curY, SUMMARY_LABEL_COLOR, TITLE_COLOR);
   curY += LINE_HEIGHT;
 
-  // 약한 오행
-  const defLabel = '약한 오행  ';
-  const defValue = `${defEl.korean}(${defEl.hanja})`;
-  drawLeft(ctx, defLabel, leftX, curY, SUMMARY_LABEL_COLOR);
-  drawLeft(ctx, defValue, leftX + ctx.measureText(defLabel).width, curY, ELEMENT_COLORS[fe.deficient]);
-  curY += LINE_HEIGHT;
-
-  // 주요 십성
-  const godLabel = '주요 십성  ';
-  drawLeft(ctx, godLabel, leftX, curY, SUMMARY_LABEL_COLOR);
-  drawLeft(ctx, topGods, leftX + ctx.measureText(godLabel).width, curY, TITLE_COLOR);
-  curY += LINE_HEIGHT;
-
-  // 신살 (있으면)
   if (sinsals.length > 0) {
-    const sinsalLabel = '신살       ';
-    const sinsalValue = sinsals.map(s => s.name).join(', ');
-    drawLeft(ctx, sinsalLabel, leftX, curY, SUMMARY_LABEL_COLOR);
-    drawLeft(ctx, sinsalValue, leftX + ctx.measureText(sinsalLabel).width, curY, SINSAL_COLOR);
+    drawLabelValue(ctx, '신살', sinsals.map(s => s.name).join(', '), leftX, valueX, curY, SUMMARY_LABEL_COLOR, SINSAL_COLOR);
     curY += LINE_HEIGHT;
   }
 
@@ -404,8 +399,8 @@ function tryAnchorDownload(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-/** 다운로드 (모든 플랫폼 a.click 우선) */
-export async function downloadBlob(blob: Blob, filename: string): Promise<boolean> {
+/** 다운로드 (a.click) */
+export function downloadBlob(blob: Blob, filename: string): boolean {
   tryAnchorDownload(blob, filename);
   return true;
 }

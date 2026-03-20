@@ -43,6 +43,7 @@ export interface TenGodEntry {
   name: TenGodName;
   position: string;    // "연간", "월간", "시간", "연지", "월지", "일지", "시지"
   stem: HeavenlyStem;
+  weight: number;      // 천간=1.0, 지장간 본기=0.6, 중기/여기=0.2~0.4
 }
 
 // 오행 균형

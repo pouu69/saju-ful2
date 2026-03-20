@@ -12,8 +12,9 @@ function getTenGodRelation(dayMaster: HeavenlyStem, target: HeavenlyStem): TenGo
 }
 
 /**
- * 모든 기둥의 천간에 대해 십성을 계산한다.
- * 일간(dayPillar.stem)은 자기 자신이므로 '일간'으로 표시.
+ * 모든 기둥의 천간 + 지지 본기에 대해 십성을 계산한다.
+ * 일간(dayPillar.stem)은 자기 자신이므로 제외.
+ * 천간 weight=1.0, 지지 본기 weight=본기 가중치(보통 0.6~1.0).
  */
 export function calculateTenGods(
   dayMaster: HeavenlyStem,
@@ -24,53 +25,49 @@ export function calculateTenGods(
 ): TenGodEntry[] {
   const entries: TenGodEntry[] = [];
 
-  // 연간
-  entries.push({
-    name: getTenGodRelation(dayMaster, yearPillar.stem),
-    position: '연간',
-    stem: yearPillar.stem,
-  });
-
-  // 월간
-  entries.push({
-    name: getTenGodRelation(dayMaster, monthPillar.stem),
-    position: '월간',
-    stem: monthPillar.stem,
-  });
-
-  // 시간
+  // 천간 (weight=1.0): 연간, 월간, 시간
+  const stemPillars: { pillar: Pillar; position: string }[] = [
+    { pillar: yearPillar, position: '연간' },
+    { pillar: monthPillar, position: '월간' },
+  ];
   if (hourPillar) {
+    stemPillars.push({ pillar: hourPillar, position: '시간' });
+  }
+
+  for (const { pillar, position } of stemPillars) {
     entries.push({
-      name: getTenGodRelation(dayMaster, hourPillar.stem),
-      position: '시간',
-      stem: hourPillar.stem,
+      name: getTenGodRelation(dayMaster, pillar.stem),
+      position,
+      stem: pillar.stem,
+      weight: 1.0,
     });
   }
 
-  // 지지의 지장간(본기)에 대해서도 십성 계산
-  const branchPillars: { pillar: Pillar; posPrefix: string }[] = [
-    { pillar: yearPillar, posPrefix: '연지' },
-    { pillar: monthPillar, posPrefix: '월지' },
-    { pillar: dayPillar, posPrefix: '일지' },
+  // 지지 본기 (첫 번째 지장간만 사용 — 표준 방식)
+  const branchPillars: { pillar: Pillar; position: string }[] = [
+    { pillar: yearPillar, position: '연지' },
+    { pillar: monthPillar, position: '월지' },
+    { pillar: dayPillar, position: '일지' },
   ];
   if (hourPillar) {
-    branchPillars.push({ pillar: hourPillar, posPrefix: '시지' });
+    branchPillars.push({ pillar: hourPillar, position: '시지' });
   }
 
-  for (const { pillar, posPrefix } of branchPillars) {
+  for (const { pillar, position } of branchPillars) {
     const hiddenStems = BRANCH_HIDDEN_STEMS[pillar.branch.korean];
-    if (hiddenStems && hiddenStems.length > 0) {
-      // 본기(첫 번째)만 주요 십성으로 사용
-      const mainStemIndex = STEM_KOREAN_TO_INDEX[hiddenStems[0].stem];
-      if (mainStemIndex !== undefined) {
-        const mainStem = HEAVENLY_STEMS[mainStemIndex];
-        entries.push({
-          name: getTenGodRelation(dayMaster, mainStem),
-          position: posPrefix,
-          stem: mainStem,
-        });
-      }
-    }
+    if (!hiddenStems || hiddenStems.length === 0) continue;
+
+    const mainHidden = hiddenStems[0];
+    const stemIndex = STEM_KOREAN_TO_INDEX[mainHidden.stem];
+    if (stemIndex === undefined) continue;
+
+    const stem = HEAVENLY_STEMS[stemIndex];
+    entries.push({
+      name: getTenGodRelation(dayMaster, stem),
+      position,
+      stem,
+      weight: mainHidden.weight,
+    });
   }
 
   return entries;

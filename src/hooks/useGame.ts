@@ -330,7 +330,7 @@ export function useGame() {
       // 궁합의 방: 상대방 정보 입력 모드로 전환
       partnerInfoRef.current = {};
       partnerSajuRef.current = null;
-      aiCacheRef.current['compatibility'] = ''; // 캐시 초기화
+      delete aiCacheRef.current['compatibility'];
       setPhase('partner_name');
     } else if (result.requestAi) {
       triggerAi(roomId);

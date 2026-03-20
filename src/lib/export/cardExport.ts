@@ -338,20 +338,6 @@ export async function renderCardToPng(
   });
 }
 
-/** 모바일 Web Share API로 파일 공유 시도 */
-async function tryWebShare(blob: Blob, filename: string): Promise<boolean> {
-  try {
-    if (!navigator.share || !navigator.canShare) return false;
-    const file = new File([blob], filename, { type: blob.type });
-    if (!navigator.canShare({ files: [file] })) return false;
-    await navigator.share({ files: [file] });
-    return true;
-  } catch (err: unknown) {
-    if (err instanceof Error && err.name === 'AbortError') return true; // 사용자 취소
-    return false;
-  }
-}
-
 /** a.download 클릭으로 다운로드 */
 function tryAnchorDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -362,36 +348,12 @@ function tryAnchorDownload(blob: Blob, filename: string): void {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  // 브라우저가 다운로드를 시작할 시간 확보 후 해제
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-/** 새 탭에서 열기 (iOS Safari fallback) */
-function tryOpenInNewTab(blob: Blob): void {
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
-
-/** 모바일 대응 다운로드: Web Share → a.click → 새 탭 열기 */
+/** 다운로드 (모든 플랫폼 a.click 우선) */
 export async function downloadBlob(blob: Blob, filename: string): Promise<boolean> {
-  // 1) 모바일: Web Share API
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  if (isMobile) {
-    const shared = await tryWebShare(blob, filename);
-    if (shared) return true;
-  }
-
-  // 2) a.download 클릭 (데스크톱, 일부 모바일)
-  // Safari(iOS)에서는 a.download가 무시될 수 있음
-  const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
-  if (!isSafariIOS) {
-    tryAnchorDownload(blob, filename);
-    return true;
-  }
-
-  // 3) iOS Safari 최종 fallback: 새 탭에서 열기 (사용자가 길게 눌러 저장)
-  tryOpenInNewTab(blob);
+  tryAnchorDownload(blob, filename);
   return true;
 }
 

@@ -11,6 +11,7 @@ import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generatePillarLines } from '@/components/saju/PillarDisplay';
 import { generateLuckTimeline, generateSynthesisCard, ChartLine } from '@/components/saju/Charts';
 import { BirthInfo, SajuResult, MaritalStatus, CalendarType } from '@/lib/saju/types';
+import { downloadCardPng, downloadBlob } from '@/lib/export/cardExport';
 
 const TITLE_ART_WIDE = [
   '',
@@ -282,6 +283,7 @@ export function useGame() {
       },
       () => {
         aiCacheRef.current[roomId] = fullText;
+        forceRender(n => n + 1);
         showExits(roomId);
       },
       (error) => {
@@ -699,20 +701,22 @@ export function useGame() {
 
     const fullText = sections.join('\n');
     const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${name}_사주풀이_${new Date().toISOString().slice(0, 10)}.txt`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    return true;
+    const filename = `${name}_사주풀이_${new Date().toISOString().slice(0, 10)}.txt`;
+    return downloadBlob(blob, filename);
+  }, []);
+
+  /** 사주 카드 PNG 내보내기 */
+  const exportCardPng = useCallback(async (): Promise<boolean> => {
+    const saju = sajuRef.current;
+    if (!saju) return false;
+    return downloadCardPng(saju, aiCacheRef.current as Record<string, string>);
   }, []);
 
   /** 현재 방에 AI 캐시가 있는지 */
   const hasAiContent = !!aiCacheRef.current[currentRoomRef.current];
+
+  /** 어떤 방이든 AI 풀이가 있는지 (내보내기 활성화 조건) */
+  const hasAnyAiContent = Object.values(aiCacheRef.current).some(v => !!v);
 
   return {
     lines,
@@ -725,6 +729,8 @@ export function useGame() {
     currentRoom: currentRoomRef.current,
     copyCurrentRoom,
     exportAll,
+    exportCardPng,
     hasAiContent,
+    hasAnyAiContent,
   };
 }

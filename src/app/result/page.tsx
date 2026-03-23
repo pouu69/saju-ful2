@@ -6,11 +6,13 @@ import { useSaju } from '@/hooks/useSaju';
 import { CardPreview } from '@/components/card/CardPreview';
 import { ShareButtons } from '@/components/card/ShareButtons';
 import { renderCardToPng } from '@/lib/export/cardExport';
+import { renderLuckCardToPng } from '@/lib/export/luckCardExport';
 
 export default function ResultPage() {
   const router = useRouter();
   const saju = useSaju();
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
+  const [luckCardBlob, setLuckCardBlob] = useState<Blob | null>(null);
   const [showLuckCard, setShowLuckCard] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -36,9 +38,18 @@ export default function ResultPage() {
     [sajuResult, saju.aiCache]
   );
 
+  const renderLuckCard = useCallback(
+    () => {
+      if (!sajuResult) return Promise.reject(new Error('No saju'));
+      return renderLuckCardToPng(sajuResult, saju.aiCache);
+    },
+    [sajuResult, saju.aiCache]
+  );
+
   if (!initialized || !sajuResult) return null;
 
   const cardFilename = `${sajuResult.birthInfo.name || '사주'}_사주카드_${new Date().toISOString().slice(0, 10)}.png`;
+  const luckFilename = `${sajuResult.birthInfo.name || '사주'}_대운세운카드_${new Date().toISOString().slice(0, 10)}.png`;
 
   return (
     <main className="min-h-screen flex flex-col items-center p-4 py-8">
@@ -107,8 +118,9 @@ export default function ResultPage() {
           </button>
 
           {showLuckCard && (
-            <div className="text-[#8A7848] font-mono text-center py-4 border border-dashed border-[#D4A020]/20">
-              대운/세운 카드 (준비 중)
+            <div className="mt-3">
+              <CardPreview renderCard={renderLuckCard} onBlobReady={setLuckCardBlob} />
+              <ShareButtons blob={luckCardBlob} filename={luckFilename} />
             </div>
           )}
 

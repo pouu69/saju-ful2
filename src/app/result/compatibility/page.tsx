@@ -6,7 +6,7 @@ import { useSaju } from '@/hooks/useSaju';
 import { SajuForm } from '@/components/form/SajuForm';
 import { CardPreview } from '@/components/card/CardPreview';
 import { ShareButtons } from '@/components/card/ShareButtons';
-import { renderCardToPng } from '@/lib/export/cardExport';
+import { renderCompatCardToPng } from '@/lib/export/compatCardExport';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import type { BirthInfo, SajuResult } from '@/lib/saju/types';
 
@@ -44,11 +44,10 @@ export default function CompatibilityPage() {
 
   const renderCompatCard = useCallback(
     () => {
-      if (!partnerResult) return Promise.reject(new Error('No partner'));
-      // TODO: Replace with renderCompatCardToPng when implemented
-      return renderCardToPng(partnerResult, saju.aiCache);
+      if (!sajuResult || !partnerResult) return Promise.reject(new Error('No data'));
+      return renderCompatCardToPng(sajuResult, partnerResult, saju.aiCache);
     },
-    [partnerResult, saju.aiCache]
+    [sajuResult, partnerResult, saju.aiCache]
   );
 
   const filename = sajuResult && partnerResult

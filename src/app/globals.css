@@ -28,6 +28,38 @@
     overflow-y: auto;
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: unset;
+    animation: torch-flicker 4s ease-in-out infinite;
+  }
+
+  /* Global CRT overlay effects */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Scanlines */
+  body::before {
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.08) 0px,
+      rgba(0, 0, 0, 0.08) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  /* Vignette */
+  body::after {
+    background: radial-gradient(
+      ellipse at center,
+      transparent 60%,
+      rgba(0, 0, 0, 0.25) 85%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
   }
 
   /* Hide number input spinners */

@@ -25,6 +25,10 @@ export default function LandingPage() {
     <main className="min-h-screen flex flex-col items-center justify-center p-4">
       {/* Title */}
       <div className="text-center mb-8 font-mono">
+        <pre className="text-[#D4A020]/30 text-xs leading-tight hidden sm:block mb-4">{`
+    ╔═══════════════════════════╗
+    ║   ☰  ☱  ☲  ☳  ☴  ☵  ☶  ☷  ║
+    ╚═══════════════════════════╝`}</pre>
         <h1 className="text-[#FFD060] text-xl sm:text-2xl tracking-widest">
           사 주 명 리 의  미 궁
         </h1>
@@ -34,6 +38,10 @@ export default function LandingPage() {
         <div className="text-[#D4A020] mt-3 text-sm">
           ══════════════════════
         </div>
+        <p className="text-[#8A7848] text-xs mt-2">
+          생년월일시를 입력하면 AI가 사주를 풀이하고
+          <br />나만의 사주 카드를 만들어 드립니다
+        </p>
       </div>
 
       {/* Form */}

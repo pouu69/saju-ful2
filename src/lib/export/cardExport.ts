@@ -44,7 +44,7 @@ const FONT_FAMILY = '"D2Coding", "D2 Coding", "Noto Sans Mono CJK KR", monospace
 
 /** AI 캐시에서 현자의 한마디 추출 */
 export function extractWisdom(aiCache: Record<string, string>): string {
-  const roomOrder = ['synthesis', 'detail', 'luck', 'compatibility'];
+  const roomOrder = ['synthesis', 'luck', 'compatibility'];
   for (const roomId of roomOrder) {
     const text = aiCache[roomId];
     if (!text) continue;

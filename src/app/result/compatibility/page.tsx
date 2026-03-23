@@ -63,7 +63,7 @@ export default function CompatibilityPage() {
       <div className="text-center mb-6 font-mono">
         <h1 className="text-[#FFD060] text-lg">궁합 카드</h1>
         <p className="text-[#8A7848] text-sm mt-1">
-          {sajuResult.birthInfo.name || '나'}와 상대방의 궁합
+          {sajuResult.birthInfo.name || '나'}와 {partnerResult ? (partnerResult.birthInfo.name || '상대') : '상대'}의 궁합
         </p>
         <div className="text-[#D4A020] mt-2 text-sm">
           ══════════════════════
@@ -126,14 +126,29 @@ export default function CompatibilityPage() {
         </>
       )}
 
-      {/* Back */}
-      <button
-        onClick={() => router.back()}
-        className="mt-4 px-6 py-3 border border-[#D4A020]/30 text-[#8A7848] font-mono
-          hover:bg-[#D4A020]/10 transition-colors min-h-[48px]"
-      >
-        ◀ 돌아가기
-      </button>
+      {/* Actions */}
+      <div className="flex gap-3 mt-4">
+        {partnerResult && (
+          <button
+            onClick={() => {
+              setPartnerResult(null);
+              setCardBlob(null);
+              setCalcError(null);
+            }}
+            className="px-6 py-3 border border-[#D4A020]/50 text-[#D4A020] font-mono
+              hover:bg-[#D4A020]/10 transition-colors min-h-[48px]"
+          >
+            다른 상대와 궁합 보기
+          </button>
+        )}
+        <button
+          onClick={() => router.back()}
+          className="px-6 py-3 border border-[#D4A020]/30 text-[#8A7848] font-mono
+            hover:bg-[#D4A020]/10 transition-colors min-h-[48px]"
+        >
+          ◀ 돌아가기
+        </button>
+      </div>
     </main>
   );
 }

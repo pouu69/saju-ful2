@@ -164,7 +164,9 @@ function drawHLine(
 export async function renderCardToPng(
   saju: SajuResult,
   aiCache: Record<string, string>,
+  options?: { cardWidth?: number },
 ): Promise<Blob> {
+  const CARD_W = options?.cardWidth ?? CARD_INNER_W;
   const animal = saju.yearPillar.branch.animal;
   const zodiacArt = getZodiacArt(animal);
   const dm = saju.dayMaster;
@@ -198,7 +200,7 @@ export async function renderCardToPng(
   tmpCtx.font = `${FONT_SIZE}px ${FONT_FAMILY}`;
 
   const wisdom = extractWisdom(aiCache);
-  const wisdomMaxW = CARD_INNER_W - CARD_PAD_X * 2;
+  const wisdomMaxW = CARD_W - CARD_PAD_X * 2;
   const wrappedWisdom = wrapTextPx(tmpCtx, wisdom, wisdomMaxW).slice(0, MAX_WISDOM_LINES);
 
   // 섹션별 높이 계산
@@ -213,7 +215,7 @@ export async function renderCardToPng(
   const footerH = CARD_PAD_Y + LINE_HEIGHT * 2 + CARD_PAD_Y;
 
   const totalCardH = titleH + infoH + artH + wisdomH + pillarH + summaryH + footerH;
-  const canvasW = CARD_INNER_W + MARGIN * 2;
+  const canvasW = CARD_W + MARGIN * 2;
   const canvasH = totalCardH + MARGIN * 2;
 
   const canvas = document.createElement('canvas');
@@ -229,7 +231,7 @@ export async function renderCardToPng(
   // ── 카드 외곽 테두리 (글로우) ──
   const cardX = MARGIN;
   const cardY = MARGIN;
-  const cardW = CARD_INNER_W;
+  const cardW = CARD_W;
   const cardH = totalCardH;
 
   ctx.shadowColor = BORDER_COLOR;

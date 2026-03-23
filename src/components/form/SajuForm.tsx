@@ -37,8 +37,29 @@ export function SajuForm({ onSubmit, loading, error, compact }: SajuFormProps) {
   const [maritalStatus, setMaritalStatus] = useState<'single' | 'married' | 'etc'>('single');
   const [occupation, setOccupation] = useState('');
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    const y = parseInt(year);
+    const m = parseInt(month);
+    const d = parseInt(day);
+
+    if (y < 1900 || y > new Date().getFullYear()) {
+      setFormError('올바른 출생 연도를 입력해주세요 (1900~현재)');
+      return;
+    }
+    if (m < 1 || m > 12) {
+      setFormError('월은 1~12 사이로 입력해주세요');
+      return;
+    }
+    if (d < 1 || d > 31) {
+      setFormError('일은 1~31 사이로 입력해주세요');
+      return;
+    }
+
     const birthInfo: BirthInfo = {
       name: name.trim() || '무명',
       year: parseInt(year),
@@ -153,9 +174,9 @@ export function SajuForm({ onSubmit, loading, error, compact }: SajuFormProps) {
         </div>
       )}
 
-      {error && (
+      {(formError || error) && (
         <div className="text-[#FF5544] font-mono text-sm border border-[#FF5544]/30 p-2">
-          {`! ${error}`}
+          {`! ${formError || error}`}
         </div>
       )}
 

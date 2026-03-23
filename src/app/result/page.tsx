@@ -7,6 +7,7 @@ import { CardPreview } from '@/components/card/CardPreview';
 import { ShareButtons } from '@/components/card/ShareButtons';
 import { renderCardToPng } from '@/lib/export/cardExport';
 import { renderLuckCardToPng } from '@/lib/export/luckCardExport';
+import { ELEMENT_NAMES, ELEMENT_HEX } from '@/lib/saju/constants';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -71,6 +72,49 @@ export default function ResultPage() {
           ══════════════════════
         </div>
       </div>
+
+      {/* Saju Summary (instant, no AI needed) */}
+      <section className="w-full max-w-lg border border-[#D4A020]/30 p-4 mb-6">
+        <h2 className="text-[#CC88FF] font-mono text-center mb-3">
+          ─── 사주 원국 ───
+        </h2>
+        <div className="font-mono text-sm">
+          {/* Four Pillars */}
+          <div className="flex justify-around mb-3">
+            {[
+              { label: '년주', p: sajuResult.yearPillar },
+              { label: '월주', p: sajuResult.monthPillar },
+              { label: '일주', p: sajuResult.dayPillar },
+              ...(sajuResult.hourPillar ? [{ label: '시주', p: sajuResult.hourPillar }] : []),
+            ].map(({ label, p }) => (
+              <div key={label} className="text-center">
+                <div className="text-[#8A7848] text-xs">{label}</div>
+                <div style={{ color: ELEMENT_HEX[p.stem.element] }}>{p.stem.korean}({p.stem.hanja})</div>
+                <div style={{ color: ELEMENT_HEX[p.branch.element] }}>{p.branch.korean}({p.branch.hanja})</div>
+              </div>
+            ))}
+          </div>
+          {/* Day Master + Element Balance */}
+          <div className="text-center text-[#E8D8C0] text-xs space-y-1">
+            <div>
+              일간: <span style={{ color: ELEMENT_HEX[sajuResult.dayMaster.element] }}>
+                {sajuResult.dayMaster.korean}({ELEMENT_NAMES[sajuResult.dayMaster.element].hanja})
+              </span>
+              {' · '}
+              {sajuResult.yearPillar.branch.animal}띠
+            </div>
+            <div>
+              강한 오행: <span style={{ color: ELEMENT_HEX[sajuResult.fiveElements.dominant] }}>
+                {ELEMENT_NAMES[sajuResult.fiveElements.dominant].korean}
+              </span>
+              {' · '}
+              약한 오행: <span style={{ color: ELEMENT_HEX[sajuResult.fiveElements.deficient] }}>
+                {ELEMENT_NAMES[sajuResult.fiveElements.deficient].korean}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* AI Interpretation */}
       <section className="w-full max-w-lg border border-[#D4A020]/30 p-4 mb-6">

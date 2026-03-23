@@ -363,7 +363,7 @@ function getGongmangDesc(saju: SajuResult): string {
   return `"공망"이란 쉽게 말해 그 자리의 에너지가 빈 것처럼 작용하는 걸 뜻하거든. ${branches}이 공망이라 ${affected} 쪽에서 예상치 못한 변동이 생기기 쉬운 구조야. 다만 공망이 꼭 나쁜 것만은 아니야 — 오히려 세속적 집착에서 벗어나 정신적 깊이를 얻는 계기가 될 수도 있지.`;
 }
 
-export function getTemplateInterpretation(roomId: string, saju: SajuResult, partnerSaju?: SajuResult): string {
+export function getTemplateInterpretation(type: string, saju: SajuResult, partnerSaju?: SajuResult): string {
   const dm = saju.dayMaster;
   const el = dm.element;
   const elName = ELEMENT_NAMES[el];
@@ -374,7 +374,7 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
   const personality = ELEMENT_PERSONALITY[el];
   const metaphor = DAY_MASTER_METAPHOR[dm.korean];
 
-  switch (roomId) {
+  switch (type) {
     case 'synthesis': {
       const sorted = countTenGods(saju.tenGods);
       const dominant = sorted[0]?.[0] || '비견';

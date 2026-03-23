@@ -14,8 +14,8 @@
 }
 
 html, body {
-  height: 100%;
-  height: 100dvh;
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 body {
@@ -23,7 +23,8 @@ body {
   color: var(--terminal-text);
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
 }

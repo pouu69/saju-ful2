@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface CardPreviewProps {
   renderCard: () => Promise<Blob>;
@@ -12,6 +12,8 @@ export function CardPreview({ renderCard, onBlobReady, className }: CardPreviewP
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const onBlobReadyRef = useRef(onBlobReady);
+  onBlobReadyRef.current = onBlobReady;
 
   useEffect(() => {
     let objectUrl: string | null = null;
@@ -26,7 +28,7 @@ export function CardPreview({ renderCard, onBlobReady, className }: CardPreviewP
         if (cancelled) return;
         objectUrl = URL.createObjectURL(blob);
         setImgSrc(objectUrl);
-        onBlobReady?.(blob);
+        onBlobReadyRef.current?.(blob);
       } catch {
         if (!cancelled) setError('카드 생성에 실패했습니다.');
       } finally {
@@ -40,7 +42,7 @@ export function CardPreview({ renderCard, onBlobReady, className }: CardPreviewP
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [renderCard, onBlobReady]);
+  }, [renderCard]);
 
   if (loading) {
     return (

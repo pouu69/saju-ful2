@@ -56,6 +56,9 @@ export function SajuForm({ onSubmit, loading, error, compact }: SajuFormProps) {
 
   const inputClass = 'bg-transparent border-b border-[#D4A020]/40 text-[#E8D8C0] ' +
     'font-mono outline-none focus:border-[#D4A020] w-full py-2 px-1 text-base';
+  const selectClass = 'bg-[#080600] border-b border-[#D4A020]/40 text-[#E8D8C0] ' +
+    'font-mono outline-none focus:border-[#D4A020] w-full py-2 px-1 text-base cursor-pointer ' +
+    '[&>option]:bg-[#080600] [&>option]:text-[#E8D8C0]';
   const labelClass = 'text-[#D4A020] font-mono text-base';
   const radioClass = 'accent-[#D4A020]';
 
@@ -104,7 +107,7 @@ export function SajuForm({ onSubmit, loading, error, compact }: SajuFormProps) {
       <div>
         <label className={labelClass}>{`> 태어난 시`}</label>
         <select value={hour} onChange={e => setHour(parseInt(e.target.value))}
-          className={`${inputClass} cursor-pointer`}>
+          className={selectClass}>
           {HOUR_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}

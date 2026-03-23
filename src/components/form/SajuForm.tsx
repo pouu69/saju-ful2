@@ -47,6 +47,10 @@ export function SajuForm({ onSubmit, loading, error, compact }: SajuFormProps) {
     const m = parseInt(month);
     const d = parseInt(day);
 
+    if (isNaN(y) || isNaN(m) || isNaN(d)) {
+      setFormError('올바른 숫자를 입력해주세요');
+      return;
+    }
     if (y < 1900 || y > new Date().getFullYear()) {
       setFormError('올바른 출생 연도를 입력해주세요 (1900~현재)');
       return;

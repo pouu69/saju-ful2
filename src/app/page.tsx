@@ -16,6 +16,8 @@ export default function LandingPage() {
     const result = calculate(birthInfo);
     if (result) {
       router.push('/result');
+      // Safety timeout: re-enable if navigation stalls
+      setTimeout(() => setLoading(false), 5000);
     } else {
       setLoading(false);
     }

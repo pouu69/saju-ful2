@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSaju } from '@/hooks/useSaju';
 import { SajuForm } from '@/components/form/SajuForm';
@@ -43,13 +43,27 @@ export default function CompatibilityPage() {
 
   const sajuResult = saju.sajuResult;
 
+  // Use ref for aiCache to prevent card re-render during streaming
+  const aiCacheRef = useRef(saju.aiCache);
+  aiCacheRef.current = saju.aiCache;
+
   const renderCompatCard = useCallback(
     () => {
       if (!sajuResult || !partnerResult) return Promise.reject(new Error('No data'));
-      return renderCompatCardToPng(sajuResult, partnerResult, saju.aiCache);
+      return renderCompatCardToPng(sajuResult, partnerResult, aiCacheRef.current);
     },
-    [sajuResult, partnerResult, saju.aiCache]
+    [sajuResult, partnerResult]
   );
+
+  // Re-render card once AI streaming completes
+  const [cardVersion, setCardVersion] = useState(0);
+  const prevStreaming = useRef(saju.streaming);
+  useEffect(() => {
+    if (prevStreaming.current && !saju.streaming) {
+      setCardVersion(v => v + 1);
+    }
+    prevStreaming.current = saju.streaming;
+  }, [saju.streaming]);
 
   const filename = sajuResult && partnerResult
     ? `${sajuResult.birthInfo.name}_${partnerResult.birthInfo.name}_궁합카드.png`
@@ -120,7 +134,7 @@ export default function CompatibilityPage() {
             <h2 className="text-[#CC88FF] font-mono text-center mb-3">
               ─── 궁합 카드 ───
             </h2>
-            <CardPreview renderCard={renderCompatCard} onBlobReady={setCardBlob} />
+            <CardPreview key={cardVersion} renderCard={renderCompatCard} onBlobReady={setCardBlob} />
             <ShareButtons blob={cardBlob} filename={filename} />
           </section>
         </>

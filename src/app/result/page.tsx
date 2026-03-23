@@ -40,21 +40,35 @@ export default function ResultPage() {
 
   const sajuResult = saju.sajuResult;
 
+  // Use ref for aiCache to prevent card re-render during streaming
+  const aiCacheRef = useRef(saju.aiCache);
+  aiCacheRef.current = saju.aiCache;
+
   const renderBasicCard = useCallback(
     () => {
       if (!sajuResult) return Promise.reject(new Error('No saju'));
-      return renderCardToPng(sajuResult, saju.aiCache);
+      return renderCardToPng(sajuResult, aiCacheRef.current);
     },
-    [sajuResult, saju.aiCache]
+    [sajuResult]
   );
 
   const renderLuckCard = useCallback(
     () => {
       if (!sajuResult) return Promise.reject(new Error('No saju'));
-      return renderLuckCardToPng(sajuResult, saju.aiCache);
+      return renderLuckCardToPng(sajuResult, aiCacheRef.current);
     },
-    [sajuResult, saju.aiCache]
+    [sajuResult]
   );
+
+  // Re-render card once AI streaming completes (wisdom text available)
+  const [cardVersion, setCardVersion] = useState(0);
+  const prevStreaming = useRef(saju.streaming);
+  useEffect(() => {
+    if (prevStreaming.current && !saju.streaming) {
+      setCardVersion(v => v + 1);
+    }
+    prevStreaming.current = saju.streaming;
+  }, [saju.streaming]);
 
   if (!initialized || !sajuResult) return null;
 
@@ -151,6 +165,7 @@ export default function ResultPage() {
           ─── 사주 카드 ───
         </h2>
         <CardPreview
+          key={cardVersion}
           renderCard={renderBasicCard}
           onBlobReady={setCardBlob}
         />

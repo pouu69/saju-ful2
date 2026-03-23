@@ -363,7 +363,7 @@ function getGongmangDesc(saju: SajuResult): string {
   return `"공망"이란 쉽게 말해 그 자리의 에너지가 빈 것처럼 작용하는 걸 뜻하거든. ${branches}이 공망이라 ${affected} 쪽에서 예상치 못한 변동이 생기기 쉬운 구조야. 다만 공망이 꼭 나쁜 것만은 아니야 — 오히려 세속적 집착에서 벗어나 정신적 깊이를 얻는 계기가 될 수도 있지.`;
 }
 
-export function getTemplateInterpretation(roomId: string, saju: SajuResult, partnerSaju?: SajuResult): string {
+export function getTemplateInterpretation(type: string, saju: SajuResult, partnerSaju?: SajuResult): string {
   const dm = saju.dayMaster;
   const el = dm.element;
   const elName = ELEMENT_NAMES[el];
@@ -374,7 +374,7 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
   const personality = ELEMENT_PERSONALITY[el];
   const metaphor = DAY_MASTER_METAPHOR[dm.korean];
 
-  switch (roomId) {
+  switch (type) {
     case 'synthesis': {
       const sorted = countTenGods(saju.tenGods);
       const dominant = sorted[0]?.[0] || '비견';
@@ -423,73 +423,6 @@ export function getTemplateInterpretation(roomId: string, saju: SajuResult, part
         `── 현자의 한마디 ──`,
         '',
         sageWord,
-      ].join('\n');
-    }
-
-    case 'detail': {
-      const fe = saju.fiveElements;
-      const dom = ELEMENT_NAMES[fe.dominant];
-      const def = ELEMENT_NAMES[fe.deficient];
-      const domP = ELEMENT_PERSONALITY[fe.dominant];
-
-      const sorted = countTenGods(saju.tenGods);
-      const dominant = sorted[0]?.[0] || '비견';
-      const domInfo = TEN_GOD_MEANINGS[dominant];
-      const second = sorted.length > 1 ? sorted[1][0] : null;
-      const secInfo = second ? TEN_GOD_MEANINGS[second] : null;
-      const third = sorted.length > 2 ? sorted[2][0] : null;
-      const thirdInfo = third ? TEN_GOD_MEANINGS[third] : null;
-
-      const behaviorPattern = getElementBehaviorPattern(fe.dominant, fe.deficient);
-      const gongmangDesc = getGongmangDesc(saju);
-
-      // 12운성 중 일지 운성 찾기
-      const dayStage = saju.twelveStages.find(s => s.position === '일지');
-      const dayStageDesc = dayStage ? TWELVE_STAGE_DESC[dayStage.stage] : '';
-
-      // 신살 해석
-      const sinsalDescs = saju.sinsals
-        .map(s => SINSAL_DETAIL[s.name] || `"${s.name}"은 ${s.description}의 기운이야.`);
-
-      // 오행 점수 문자열
-      const elementScores = (['wood', 'fire', 'earth', 'metal', 'water'] as FiveElement[])
-        .map(e => `${ELEMENT_NAMES[e].korean}(${ELEMENT_NAMES[e].hanja}): ${fe[e]}점`)
-        .join(', ');
-
-      return [
-        `── 핵심 요약 ──`,
-        '',
-        `그대의 사주를 보니... ${metaphor ? `마치 ${metaphor.metaphor}과 같은 형국이로군.` : ''} ${dom.korean}(${dom.hanja})이 강하고 ${def.korean}(${def.hanja})이 약한 구조야. 오행 점수로 보면 ${elementScores}인데, 이 불균형이 그대의 삶 전반에 특징적인 패턴을 만들어내고 있지.`,
-        '',
-        `── 오행과 십성의 역학 ──`,
-        '',
-        `${dom.korean}(${dom.hanja})이 가장 강하게 작동하고 있으니, ${domP.modernDesc}`,
-        '',
-        behaviorPattern,
-        '',
-        `여기에 "${dominant}"의 기운이 가장 강하게 작동하고 있어. ${domInfo?.scene || domInfo?.desc || ''} ${ELEMENT_RELATION_DESC[el]?.[fe.dominant] || ''}`,
-        '',
-        ...(secInfo ? [`"${second}"의 기운도 같이 작용하고 있는데, ${secInfo.scene || secInfo.desc} 이 둘이 그대 안에서 서로 밀고 당기며 독특한 에너지를 만들어내고 있는 셈이지.`, ''] : []),
-        ...(thirdInfo ? [`거기에 "${third}"도 한 자리 차지하고 있거든. ${thirdInfo.desc}`, ''] : []),
-        `── 커리어·재물·관계 ──`,
-        '',
-        `이 사주 구조는 직장, 재물, 관계 모든 영역에서 비슷한 패턴을 만들어내지. ${domInfo?.career || ''}`,
-        '',
-        ...(occupation ? [`지금 하고 있는 "${occupation}"을 사주 관점에서 보면, "${dominant}"의 에너지가 이 일에 어떻게 발현되는지 한번 돌아보는 게 좋겠어.`, ''] : []),
-        `재물적으로는 ${fe.metal > 0 || fe.earth > 0 ? '안정적인 수입을 얻을 수 있는 구조이지만' : '재물운이 불안정할 수 있는 구조인데'}, ${domInfo?.relationship || ''}`,
-        '',
-        ...(gongmangDesc ? [gongmangDesc, ''] : []),
-        ...(dayStage ? [`일지의 12운성이 "${dayStage.stage}"인데, ${dayStageDesc}`, ''] : []),
-        ...(sinsalDescs.length > 0 ? [...sinsalDescs, ''] : []),
-        `── 균형과 개운 ──`,
-        '',
-        `그대에게 가장 필요한 건 ${def.korean}(${def.hanja})의 기운을 보충하는 것일세. ${ELEMENT_HEALTH[fe.deficient]}`,
-        '',
-        ELEMENT_LUCK_TIPS[fe.deficient],
-        '',
-        `오행의 균형을 맞추면서 "${dominant}"의 에너지를 잘 활용하는 게 핵심이야. 강한 오행은 그대의 무기고, 약한 오행은 의식적으로 보완할 부분이니까, 일상에서 꾸준히 실천해보게.`,
-        '',
-        `현자의 한마디: ${SAGE_WORDS[el][Math.floor(Math.random() * SAGE_WORDS[el].length)]}`,
       ].join('\n');
     }
 

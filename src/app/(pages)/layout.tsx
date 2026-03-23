@@ -5,7 +5,7 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-[#080600] text-[#D4A020] overflow-auto">
       <div className="max-w-3xl mx-auto px-6 py-12">
         <nav className="mb-10 flex gap-4 text-sm text-[#8A6618]">
-          <Link href="/" className="hover:text-[#FFD060] transition-colors">← 미궁으로 돌아가기</Link>
+          <Link href="/" className="hover:text-[#FFD060] transition-colors">← 처음으로 돌아가기</Link>
           <span>|</span>
           <Link href="/privacy" className="hover:text-[#FFD060] transition-colors">개인정보처리방침</Link>
           <Link href="/terms" className="hover:text-[#FFD060] transition-colors">이용약관</Link>

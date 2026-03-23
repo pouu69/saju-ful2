@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
-import { SYSTEM_PROMPT, FEW_SHOT_EXAMPLES, getRoomPrompt } from '@/lib/ai/prompts';
+import { SYSTEM_PROMPT, FEW_SHOT_EXAMPLES, getInterpretationPrompt } from '@/lib/ai/prompts';
 import { getTemplateInterpretation } from '@/lib/ai/templates';
 import { SajuResult } from '@/lib/saju/types';
 import { logger } from '@/lib/logger';
@@ -138,14 +138,14 @@ async function streamGemini(userPrompt: string): Promise<ReadableStream> {
 }
 
 export async function POST(request: Request) {
-  const { roomId, sajuResult, partnerSajuResult } = await request.json() as {
-    roomId: string;
+  const { interpretationType, sajuResult, partnerSajuResult } = await request.json() as {
+    interpretationType: string;
     sajuResult: SajuResult;
     partnerSajuResult?: SajuResult;
   };
 
-  const userPrompt = getRoomPrompt(roomId, sajuResult, partnerSajuResult);
-  await logger.info('API', `POST /api/interpret`, { roomId });
+  const userPrompt = getInterpretationPrompt(interpretationType, sajuResult, partnerSajuResult);
+  await logger.info('API', `POST /api/interpret`, { interpretationType });
 
   let body: ReadableStream;
   let provider: string;
@@ -158,7 +158,7 @@ export async function POST(request: Request) {
     body = await streamGemini(userPrompt);
   } else {
     provider = 'Template';
-    const templateText = getTemplateInterpretation(roomId, sajuResult, partnerSajuResult);
+    const templateText = getTemplateInterpretation(interpretationType, sajuResult, partnerSajuResult);
     body = streamTemplate(templateText);
   }
 

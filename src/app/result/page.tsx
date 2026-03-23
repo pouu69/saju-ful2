@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSaju } from '@/hooks/useSaju';
 import { CardPreview } from '@/components/card/CardPreview';
@@ -15,6 +15,7 @@ export default function ResultPage() {
   const [luckCardBlob, setLuckCardBlob] = useState<Blob | null>(null);
   const [showLuckCard, setShowLuckCard] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const streamEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -28,6 +29,13 @@ export default function ResultPage() {
       saju.streamInterpretation('synthesis', result);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-scroll during AI streaming
+  useEffect(() => {
+    if (saju.streaming && streamEndRef.current) {
+      streamEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [saju.aiText, saju.streaming]);
 
   const sajuResult = saju.sajuResult;
 
@@ -73,6 +81,7 @@ export default function ResultPage() {
           <div className="font-mono text-[#E8D8C0] text-sm whitespace-pre-wrap leading-relaxed">
             {saju.aiText}
             <span className="inline-block w-2 h-4 bg-[#D4A020] animate-pulse ml-1" />
+            <div ref={streamEndRef} />
           </div>
         ) : saju.error ? (
           <div className="text-center">

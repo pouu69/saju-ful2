@@ -5,7 +5,7 @@ const SITE_URL = 'https://main.d2myeapn5r14dx.amplifyapp.com';
 const SITE_NAME = '사주명리의 미궁';
 const TITLE = '사주명리의 미궁 - AI 사주풀이 | 무료 사주팔자 운세 보기';
 const DESCRIPTION =
-  '무료 AI 사주풀이 서비스. 생년월일시로 사주팔자, 오행 분석, 십신 해석, 대운 세운, 신살, 궁합까지. 한국 전통 사주명리학 기반 MUD 게임 스타일 터미널에서 나만의 운명을 탐험하세요.';
+  '무료 AI 사주풀이 서비스. 생년월일시로 사주팔자, 오행 분석, 십신 해석, 대운 세운, 신살, 궁합까지. 나만의 사주 카드를 만들고 공유하세요.';
 const KEYWORDS = [
   '사주',
   '사주팔자',
@@ -62,6 +62,9 @@ const KEYWORDS = [
   'four pillars',
   'four pillars of destiny',
   'BaZi',
+  '사주카드',
+  '사주 카드',
+  '사주공유',
 ];
 
 export const metadata: Metadata = {

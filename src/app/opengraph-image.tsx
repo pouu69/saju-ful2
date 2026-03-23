@@ -85,7 +85,7 @@ export default function OGImage() {
             maxWidth: 800,
           }}
         >
-          AI 기반 한국 전통 사주팔자 풀이 · MUD 터미널 스타일
+          AI 기반 사주명리 풀이 · 나만의 사주 카드
         </div>
 
         {/* Terminal prompt */}

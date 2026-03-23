@@ -17,6 +17,7 @@ export default function ResultPage() {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const result = saju.restore();
     if (!result) {
       router.replace('/');

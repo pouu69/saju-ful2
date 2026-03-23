@@ -19,6 +19,7 @@ export default function CompatibilityPage() {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const result = saju.restore();
     if (!result) {
       router.replace('/');

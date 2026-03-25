@@ -175,23 +175,25 @@ export function getInterpretationPrompt(type: string, saju: SajuResult, partnerS
     .map(([key, val]) => `${val.korean}(${val.hanja}): ${fiveEl[key as keyof typeof fiveEl]}점`)
     .join(', ');
 
-  const tenGodsStr = saju.tenGods
+  const tenGodsStr = (saju.tenGods ?? [])
     .map(tg => `${tg.position}: ${tg.name}(${tg.stem.korean}${ELEMENT_NAMES[tg.stem.element].hanja})`)
     .join(', ');
 
-  const luckStr = saju.luckCycles
+  const luckStr = (saju.luckCycles ?? [])
     .map(lc => `${lc.startAge}-${lc.endAge}세: ${lc.pillar.ganjiKorean}`)
     .join(', ');
 
-  const stagesStr = saju.twelveStages
+  const stagesStr = (saju.twelveStages ?? [])
     .map(s => `${s.position}: ${s.stage}`)
     .join(', ');
 
-  const sinsalStr = saju.sinsals.length > 0
+  const sinsalStr = (saju.sinsals ?? []).length > 0
     ? saju.sinsals.map(s => `${s.name}(${s.description})`).join(', ')
     : '특별한 신살 없음';
 
-  const gongmangStr = `공망 지지: ${saju.gongmang.branches.join(', ')}${saju.gongmang.affectedPillars.length > 0 ? `, 영향: ${saju.gongmang.affectedPillars.join(', ')}` : ''}`;
+  const gongmangStr = saju.gongmang
+    ? `공망 지지: ${saju.gongmang.branches.join(', ')}${saju.gongmang.affectedPillars.length > 0 ? `, 영향: ${saju.gongmang.affectedPillars.join(', ')}` : ''}`
+    : '공망 정보 없음';
 
   switch (type) {
     case 'synthesis':

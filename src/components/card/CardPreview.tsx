@@ -13,7 +13,9 @@ export function CardPreview({ renderCard, onBlobReady, className }: CardPreviewP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const onBlobReadyRef = useRef(onBlobReady);
-  onBlobReadyRef.current = onBlobReady;
+  useEffect(() => {
+    onBlobReadyRef.current = onBlobReady;
+  }, [onBlobReady]);
 
   useEffect(() => {
     let objectUrl: string | null = null;

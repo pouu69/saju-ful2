@@ -45,7 +45,9 @@ export default function CompatibilityPage() {
 
   // Use ref for aiCache to prevent card re-render during streaming
   const aiCacheRef = useRef(saju.aiCache);
-  aiCacheRef.current = saju.aiCache;
+  useEffect(() => {
+    aiCacheRef.current = saju.aiCache;
+  }, [saju.aiCache]);
 
   const renderCompatCard = useCallback(
     () => {

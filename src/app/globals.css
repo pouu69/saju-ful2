@@ -395,6 +395,117 @@ input:focus-visible {
   opacity: 1;
 }
 
+/* ═══ 카드 드로우 애니메이션 ═══ */
+@keyframes card-draw {
+  from {
+    transform: translateY(-120%) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.card-draw {
+  animation: card-draw 0.6s ease-out forwards;
+}
+
+.card-draw-simple {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ═══ 카드 오버레이 ═══ */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.card-overlay.visible {
+  opacity: 1;
+}
+
+.card-overlay-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #D4A020;
+  border-radius: 50%;
+  color: #D4A020;
+  background: rgba(8, 6, 0, 0.6);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.card-overlay-btn:hover {
+  background: rgba(212, 160, 32, 0.15);
+}
+
+/* ═══ 두루마리 펼침 ═══ */
+.scroll-reveal {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.8s ease-out, opacity 0.4s ease;
+}
+
+.scroll-reveal.open {
+  opacity: 1;
+}
+
+.scroll-reveal-border {
+  border-left: 1px solid rgba(212, 160, 32, 0.2);
+  border-right: 1px solid rgba(212, 160, 32, 0.2);
+  background: rgba(212, 160, 32, 0.03);
+}
+
+.scroll-decoration {
+  text-align: center;
+  font-family: monospace;
+  color: #CC88FF;
+  padding: 8px 0;
+}
+
+.scroll-bottom-decoration {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-bottom-decoration.visible {
+  opacity: 1;
+}
+
+/* ═══ 네비게이션 fade-in ═══ */
+@keyframes nav-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-fade-in {
+  animation: nav-fade-in 0.4s ease-out forwards;
+}
+
 /* ═══ 접근성: 모션 감소 ═══ */
 @media (prefers-reduced-motion: reduce) {
   .intro-line {
@@ -404,5 +515,24 @@ input:focus-visible {
   .intro-container,
   .form-container {
     transition: none;
+  }
+
+  .card-draw {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .scroll-reveal {
+    transition: none;
+  }
+
+  .scroll-bottom-decoration {
+    transition: none;
+  }
+
+  .nav-fade-in {
+    animation: none;
+    opacity: 1;
   }
 }

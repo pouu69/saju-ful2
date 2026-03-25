@@ -1,22 +1,38 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SajuForm } from '@/components/form/SajuForm';
+import { IntroAnimation } from '@/components/intro/IntroAnimation';
+import { CompactHeader } from '@/components/intro/CompactHeader';
 import { useSaju } from '@/hooks/useSaju';
 import type { BirthInfo } from '@/lib/saju/types';
+
+type Phase = 'intro' | 'fading' | 'form';
 
 export default function LandingPage() {
   const router = useRouter();
   const { calculate, error } = useSaju();
   const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<Phase>('intro');
+
+  const handleIntroComplete = () => {
+    if (phase !== 'intro') return;
+    setPhase('fading');
+  };
+
+  // Transition from fading to form after CSS transition completes
+  useEffect(() => {
+    if (phase !== 'fading') return;
+    const t = setTimeout(() => setPhase('form'), 300);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   const handleSubmit = (birthInfo: BirthInfo) => {
     setLoading(true);
     const result = calculate(birthInfo);
     if (result) {
       router.push('/result');
-      // Safety timeout: re-enable if navigation stalls
       setTimeout(() => setLoading(false), 5000);
     } else {
       setLoading(false);
@@ -24,37 +40,34 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4">
-      {/* Title */}
-      <div className="text-center mb-8 font-mono">
-        <pre className="text-[#D4A020]/30 text-xs leading-tight hidden sm:block mb-4">{`
-    ╔═══════════════════════════╗
-    ║   ☰  ☱  ☲  ☳  ☴  ☵  ☶  ☷  ║
-    ╚═══════════════════════════╝`}</pre>
-        <h1 className="text-[#FFD060] text-xl sm:text-2xl tracking-widest">
-          사 주 명 리 의  미 궁
-        </h1>
-        <p className="text-[#CC8833] text-base sm:text-lg mt-1">
-          四 柱 命 理 의  迷 宮
-        </p>
-        <div className="text-[#D4A020] mt-3 text-sm">
-          ══════════════════════
+    <div className="relative min-h-screen">
+      {/* Intro layer */}
+      {phase !== 'form' && (
+        <div
+          className={`intro-container absolute inset-0 ${phase === 'fading' ? 'fading' : ''}`}
+        >
+          <IntroAnimation onComplete={handleIntroComplete} />
         </div>
-        <p className="text-[#8A7848] text-xs mt-2">
-          생년월일시를 입력하면 AI가 사주를 풀이하고
-          <br />나만의 사주 카드를 만들어 드립니다
-        </p>
-      </div>
+      )}
 
-      {/* Form */}
-      <div className="w-full max-w-md border border-[#D4A020]/30 p-6">
-        <SajuForm onSubmit={handleSubmit} loading={loading} error={error} />
-      </div>
+      {/* Form layer */}
+      {phase !== 'intro' && (
+        <div
+          className={`form-container ${phase === 'fading' ? 'fading-in' : 'visible'}`}
+        >
+          <main className="min-h-screen flex flex-col items-center justify-center p-4">
+            <CompactHeader />
 
-      {/* Footer */}
-      <div className="text-[#6A5828] font-mono text-xs mt-8 text-center">
-        AI 기반 사주명리 풀이 서비스
-      </div>
-    </main>
+            <div className="w-full max-w-md border border-[#D4A020]/30 p-6">
+              <SajuForm onSubmit={handleSubmit} loading={loading} error={error} />
+            </div>
+
+            <div className="text-[#6A5828] font-mono text-xs mt-8 text-center">
+              AI 기반 사주명리 풀이 서비스
+            </div>
+          </main>
+        </div>
+      )}
+    </div>
   );
 }

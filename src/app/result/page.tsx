@@ -20,7 +20,7 @@ export default function ResultPage() {
   const router = useRouter();
   const saju = useSaju();
   const { phase, setPhase, particlePhase, handleParticleComplete, handleRevealComplete, handleStreamingComplete } = useResultPhase();
-  const { show: showToast, ToastUI } = useToast();
+  const { ToastUI } = useToast();
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
   const [luckCardBlob, setLuckCardBlob] = useState<Blob | null>(null);
   const [showLuckCard, setShowLuckCard] = useState(false);
@@ -118,13 +118,11 @@ export default function ResultPage() {
       />
 
       {/* Header */}
-      <div className="text-center mb-8 font-mono">
-        <h1 className="text-[#FFD060] text-lg">
-          {sajuResult.birthInfo.name || '무명'}의 사주 풀이
+      <div className="text-center mb-6 font-mono">
+        <div className="text-[#8A6618] text-[10px] tracking-[3px] mb-2">四柱命理의 미궁</div>
+        <h1 className="text-[#FFD060] text-xl font-bold">
+          {sajuResult.birthInfo.name || '무명'}님의 사주
         </h1>
-        <div className="text-[#D4A020] mt-2 text-sm">
-          ══════════════════════
-        </div>
       </div>
 
       {/* Envelope Phase */}
@@ -138,7 +136,11 @@ export default function ResultPage() {
       )}
 
       {/* Card Reveal Area */}
-      <div ref={cardAreaRef} className="w-full max-w-sm mx-auto mb-8">
+      <div ref={cardAreaRef} className="w-full max-w-sm mx-auto mb-8" style={{
+        filter: phase === 'revealed' || phase === 'scrolling' || phase === 'complete'
+          ? 'drop-shadow(0 0 40px rgba(212,160,32,0.3))' : 'none',
+        transition: 'filter 0.6s ease',
+      }}>
         <CardReveal
           renderCard={renderBasicCard}
           onBlobReady={setCardBlob}
@@ -148,6 +150,22 @@ export default function ResultPage() {
           filename={cardFilename}
         />
       </div>
+
+      {/* Card Actions — visible immediately after card reveal */}
+      {(phase === 'revealed' || phase === 'scrolling' || phase === 'complete') && sajuResult && (
+        <div className="w-full max-w-sm mx-auto mb-6 flex gap-3 justify-center">
+          <ShareButtons blob={cardBlob} filename={cardFilename} shareToken={
+            encodeShareToken({
+              year: sajuResult.birthInfo.year,
+              month: sajuResult.birthInfo.month,
+              day: sajuResult.birthInfo.day,
+              hour: sajuResult.birthInfo.hour,
+              gender: sajuResult.birthInfo.gender,
+              calendarType: sajuResult.birthInfo.calendarType,
+            })
+          } />
+        </div>
+      )}
 
       {/* Scroll (두루마리) AI Interpretation */}
       <section className="w-full max-w-lg mb-6">
@@ -178,10 +196,10 @@ export default function ResultPage() {
       {/* Navigation — fade in after completion */}
       {showNav && (
         <section className="w-full max-w-lg nav-fade-in">
-          <div className="text-center mb-4">
-            <div className="text-[#CC88FF] font-mono text-sm">
-              ═══ 더 알아보기 ═══
-            </div>
+          <div className="flex items-center gap-3 w-full mb-4">
+            <div className="flex-1 h-px" style={{ background: '#1a1500' }} />
+            <span className="text-[#8A6618] font-mono text-xs">더 알아보기</span>
+            <div className="flex-1 h-px" style={{ background: '#1a1500' }} />
           </div>
           <div className="space-y-3">
             <button
@@ -206,34 +224,6 @@ export default function ResultPage() {
             >
               ▶ 궁합 카드 만들기
             </button>
-
-            {sajuResult && (() => {
-              const token = encodeShareToken({
-                year: sajuResult.birthInfo.year,
-                month: sajuResult.birthInfo.month,
-                day: sajuResult.birthInfo.day,
-                hour: sajuResult.birthInfo.hour,
-                gender: sajuResult.birthInfo.gender,
-                calendarType: sajuResult.birthInfo.calendarType,
-              });
-              const shareUrl = `${window.location.origin}/share/${token}`;
-              return (
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(shareUrl);
-                      showToast('링크가 복사되었습니다!');
-                    } catch {
-                      showToast('링크: ' + shareUrl);
-                    }
-                  }}
-                  className="w-full py-3 border border-[#68d391]/50 text-[#68d391] font-mono
-                    hover:bg-[#68d391]/10 transition-colors min-h-[48px]"
-                >
-                  🔗 공유 링크 복사
-                </button>
-              );
-            })()}
 
             <button
               onClick={() => router.push('/')}

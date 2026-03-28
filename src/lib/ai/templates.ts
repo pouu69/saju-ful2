@@ -571,6 +571,8 @@ export interface ShareSummary {
   deficientElement: FiveElement;
   zodiacLabel: string;
   wisdomQuote: string;
+  animalDetail: string;
+  topTenGods: string;
 }
 
 export function generateShareSummary(saju: SajuResult): ShareSummary {
@@ -595,6 +597,31 @@ export function generateShareSummary(saju: SajuResult): ShareSummary {
     water: '물은 낮은 곳으로 흘러 바다를 이루니, 겸손이 곧 그대의 그릇일세.',
   };
 
+  const ANIMAL_DESC: Record<string, string> = {
+    '쥐': '영리하고 재치있는 기운',
+    '소': '성실하고 묵묵한 기운',
+    '호랑이': '용맹하고 결단력 있는 기운',
+    '토끼': '온화하고 섬세한 기운',
+    '용': '강인하고 카리스마 있는 기운',
+    '뱀': '지혜롭고 신비로운 기운',
+    '말': '활동적이고 열정적인 기운',
+    '양': '온순하고 예술적인 기운',
+    '원숭이': '재치있고 다재다능한 기운',
+    '닭': '꼼꼼하고 정의로운 기운',
+    '개': '충직하고 의리있는 기운',
+    '돼지': '풍요롭고 낙천적인 기운',
+  };
+
+  const godCounts: Record<string, number> = {};
+  for (const g of saju.tenGods ?? []) {
+    godCounts[g.name] = (godCounts[g.name] ?? 0) + 1;
+  }
+  const topGods = Object.entries(godCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([name, count]) => `${name}(${count})`)
+    .join(', ');
+
   return {
     elementKeyword: personality.keyword,
     elementDesc: personality.desc,
@@ -604,5 +631,7 @@ export function generateShareSummary(saju: SajuResult): ShareSummary {
     deficientElement: deficient,
     zodiacLabel,
     wisdomQuote: ELEMENT_WISDOM[dominant] ?? '길은 이미 당신 안에 있습니다.',
+    animalDetail: `${saju.yearPillar.branch.hanja} · ${animal} — ${ANIMAL_DESC[animal] ?? '독특한 기운'}`,
+    topTenGods: topGods || '분석 불가',
   };
 }

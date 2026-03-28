@@ -196,6 +196,32 @@ export default async function SharePage({ params }: SharePageProps) {
           </div>
         </div>
 
+        {/* 12간지 */}
+        <div
+          className="rounded-lg p-4"
+          style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-base">{ANIMAL_EMOJI[saju.yearPillar.branch.animal] ?? '⭐'}</span>
+            <span className="text-[#D4A020] font-mono text-xs font-bold">12간지</span>
+          </div>
+          <div className="text-[#FFD060] font-mono text-sm font-bold">{saju.yearPillar.branch.animal}띠</div>
+          <div className="text-[#8A6618] font-mono text-xs mt-1">{summary.animalDetail}</div>
+        </div>
+
+        {/* 십성 */}
+        <div
+          className="rounded-lg p-4"
+          style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-base">⚖️</span>
+            <span className="text-[#D4A020] font-mono text-xs font-bold">주요 십성</span>
+          </div>
+          <div className="text-[#FFD060] font-mono text-sm font-bold">{summary.topTenGods}</div>
+          <div className="text-[#8A6618] font-mono text-xs mt-1">사주의 핵심 에너지 분포</div>
+        </div>
+
         {/* 현자의 한마디 */}
         <div
           className="rounded-lg p-4 text-center"

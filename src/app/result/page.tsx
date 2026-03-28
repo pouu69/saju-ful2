@@ -14,6 +14,8 @@ import { useResultPhase } from '@/hooks/useResultPhase';
 import { ResultLoading } from '@/components/result/ResultLoading';
 import { EnvelopeReveal } from '@/components/result/EnvelopeReveal';
 import { encodeShareToken } from '@/lib/share/tokenCodec';
+import { extractWisdom } from '@/lib/export/cardExport';
+import { ELEMENT_NAMES } from '@/lib/saju/constants';
 import { useToast } from '@/hooks/useToast';
 
 export default function ResultPage() {
@@ -151,7 +153,7 @@ export default function ResultPage() {
         />
       </div>
 
-      {/* Share link — visible after card reveal */}
+      {/* Share buttons — visible after card reveal */}
       {(phase === 'revealed' || phase === 'scrolling' || phase === 'complete') && sajuResult && (() => {
         const token = encodeShareToken({
           year: sajuResult.birthInfo.year,
@@ -162,8 +164,21 @@ export default function ResultPage() {
           calendarType: sajuResult.birthInfo.calendarType,
         });
         const shareUrl = `${window.location.origin}/share/${token}`;
+        const animal = sajuResult.yearPillar.branch.animal;
+        const elHanja = ELEMENT_NAMES[sajuResult.fiveElements.dominant].hanja;
+        const wisdom = extractWisdom(saju.aiCache);
+        const threadsText = [
+          `${animal}띠의 사주에 숨겨진 비밀...`,
+          '',
+          `${elHanja}의 기운이 제일 강하대`,
+          `"${wisdom}"`,
+          '',
+          '너도 해봐',
+          shareUrl,
+        ].join('\n');
+        const threadsUrl = `https://www.threads.net/intent/post?text=${encodeURIComponent(threadsText)}`;
         return (
-          <div className="w-full max-w-sm mx-auto mb-6 flex justify-center">
+          <div className="w-full max-w-sm mx-auto mb-6 flex gap-3">
             <button
               onClick={async () => {
                 try {
@@ -173,11 +188,21 @@ export default function ResultPage() {
                   showToast('링크: ' + shareUrl);
                 }
               }}
-              className="px-6 py-3 border border-[#68d391]/50 text-[#68d391] font-mono text-sm
+              className="flex-1 py-3 border border-[#68d391]/50 text-[#68d391] font-mono text-sm
                 hover:bg-[#68d391]/10 transition-colors min-h-[44px] rounded"
             >
-              🔗 공유 링크 복사
+              링크 복사
             </button>
+            <a
+              href={threadsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-3 border border-[#B4B9BE]/50 text-[#B4B9BE] font-mono text-sm
+                hover:bg-[#B4B9BE]/10 transition-colors min-h-[44px] rounded
+                flex items-center justify-center"
+            >
+              Threads 공유
+            </a>
           </div>
         );
       })()}

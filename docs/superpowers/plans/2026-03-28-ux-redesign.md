@@ -20,13 +20,22 @@
 | Task 3 | `src/lib/ai/templates.ts` | `generateShareSummary` 함수 export 추가 |
 | Task 4 | `src/components/input/TimeGrid.tsx` | 신규: 시진 그리드 |
 | Task 5 | `src/components/input/YearDrum.tsx` | 신규: 연도 선택기 |
-| Task 6 | `src/components/input/StepInput.tsx` | 신규: 6단계 입력 컨테이너 |
+| Task 6a | `src/components/input/steps/StepName.tsx` | 신규: ① 성함 입력 |
+| Task 6b | `src/components/input/steps/StepYear.tsx` | 신규: ② 생년 선택 |
+| Task 6c | `src/components/input/steps/StepMonthDay.tsx` | 신규: ③ 월/일 입력 |
+| Task 6d | `src/components/input/steps/StepCalendar.tsx` | 신규: ④ 양력/음력 |
+| Task 6e | `src/components/input/steps/StepTime.tsx` | 신규: ⑤ 시간 선택 |
+| Task 6f | `src/components/input/steps/StepGender.tsx` | 신규: ⑥ 성별/결혼 |
+| Task 6g | `src/components/input/StepInput.tsx` | 신규: 오케스트레이터 (step 라우팅 + 상태 + 네비) |
 | Task 7 | `src/app/page.tsx` | 히어로 랜딩 + StepInput 연결 |
 | Task 8 | `src/components/result/EnvelopeReveal.tsx` | 신규: 봉투 개봉 애니메이션 |
-| Task 9 | `src/app/result/page.tsx` | envelope 단계 + 공유링크 버튼 추가 |
+| Task 9a | `src/hooks/useResultPhase.ts` | 신규: 7-phase 상태머신 훅 |
+| Task 9b | `src/components/result/ResultLoading.tsx` | 신규: 로딩 화면 컴포넌트 |
+| Task 9c | `src/app/result/page.tsx` | envelope 단계 + 공유링크 (훅/컴포넌트 조합) |
 | Task 10 | `src/lib/export/cardExport.ts` | 오행 4기둥 컬러 그리드 추가 |
 | Task 11 | `src/components/card/ShareButtons.tsx` | 공유 링크 복사 버튼 추가 |
 | Task 12 | `src/app/share/[token]/page.tsx` | 신규: 공유 카드 티저 페이지 |
+| Task 13 | 미사용 파일/CSS | 리디자인 후 미사용 코드 정리 (CompactHeader, CSS 등) |
 
 ---
 
@@ -531,20 +540,279 @@ git commit -m "feat: add YearDrum component with ganji display"
 
 ---
 
-## Task 6: StepInput 컨테이너
+## Task 6: 6단계 입력 (SRP 분리)
+
+**SOLID 적용:** 각 step UI를 개별 컴포넌트로 분리. StepInput은 오케스트레이터만 담당.
+
+### Task 6a: Step 개별 컴포넌트 (6개)
+
+**Files:**
+- Create: `src/components/input/steps/StepName.tsx`
+- Create: `src/components/input/steps/StepYear.tsx`
+- Create: `src/components/input/steps/StepMonthDay.tsx`
+- Create: `src/components/input/steps/StepCalendar.tsx`
+- Create: `src/components/input/steps/StepTime.tsx`
+- Create: `src/components/input/steps/StepGender.tsx`
+
+모든 step은 동일한 패턴을 따릅니다:
+- 질문 제목 + 설명 + 입력 UI
+- value/onChange props로 부모와 통신
+- 자체 유효성 검증 없음 (오케스트레이터가 담당)
+
+- [ ] **Step 1: steps 디렉토리 + 6개 컴포넌트 생성**
+
+```tsx
+// src/components/input/steps/StepName.tsx
+'use client';
+
+interface StepNameProps {
+  value: string;
+  onChange: (value: string) => void;
+  onEnter: () => void;
+}
+
+const inputClass = 'bg-transparent border-b border-[#D4A020]/40 text-[#E8D8C0] ' +
+  'font-mono outline-none focus:border-[#D4A020] w-full py-2 px-1 text-xl';
+
+export function StepName({ value, onChange, onEnter }: StepNameProps) {
+  return (
+    <div>
+      <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
+        성함이<br />어떻게 되십니까?
+      </div>
+      <div className="text-[#8A6618] font-mono text-sm mb-8">
+        이름을 알아야 운명을 읽을 수 있습니다
+      </div>
+      <div className="border-b border-[#D4A020] pb-2 flex items-center gap-2">
+        <span className="text-[#8A6618] font-mono text-lg">›</span>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && onEnter()}
+          placeholder="홍길동"
+          className={inputClass}
+          autoFocus
+        />
+      </div>
+      <div className="text-[#555] font-mono text-xs mt-2">한글 또는 영문</div>
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/input/steps/StepYear.tsx
+'use client';
+
+import { YearDrum } from '../YearDrum';
+
+interface StepYearProps {
+  value: number;
+  onChange: (year: number) => void;
+}
+
+export function StepYear({ value, onChange }: StepYearProps) {
+  return (
+    <div>
+      <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
+        태어난 해는<br />언제인가요?
+      </div>
+      <div className="text-[#8A6618] font-mono text-sm mb-8">
+        간지(干支)의 첫 번째 기둥입니다
+      </div>
+      <YearDrum value={value} onChange={onChange} />
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/input/steps/StepMonthDay.tsx
+'use client';
+
+interface StepMonthDayProps {
+  month: string;
+  day: string;
+  onMonthChange: (value: string) => void;
+  onDayChange: (value: string) => void;
+}
+
+const inputClass = 'bg-transparent border-b border-[#D4A020]/40 text-[#E8D8C0] ' +
+  'font-mono outline-none focus:border-[#D4A020] w-full py-2 px-1 text-xl';
+
+export function StepMonthDay({ month, day, onMonthChange, onDayChange }: StepMonthDayProps) {
+  return (
+    <div>
+      <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
+        태어난 월과<br />일은 언제인가요?
+      </div>
+      <div className="text-[#8A6618] font-mono text-sm mb-8">
+        두 번째, 세 번째 기둥을 세웁니다
+      </div>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <div className="text-[#D4A020] font-mono text-sm mb-1">월</div>
+          <input type="number" value={month} onChange={(e) => onMonthChange(e.target.value)}
+            placeholder="6" min={1} max={12} className={inputClass} autoFocus />
+        </div>
+        <div className="flex-1">
+          <div className="text-[#D4A020] font-mono text-sm mb-1">일</div>
+          <input type="number" value={day} onChange={(e) => onDayChange(e.target.value)}
+            placeholder="15" min={1} max={31} className={inputClass} />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/input/steps/StepCalendar.tsx
+'use client';
+
+interface StepCalendarProps {
+  value: 'solar' | 'lunar';
+  onChange: (value: 'solar' | 'lunar') => void;
+}
+
+export function StepCalendar({ value, onChange }: StepCalendarProps) {
+  return (
+    <div>
+      <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
+        양력인가요,<br />음력인가요?
+      </div>
+      <div className="text-[#8A6618] font-mono text-sm mb-8">
+        달력 기준이 사주 계산에 영향을 줍니다
+      </div>
+      <div className="flex gap-4">
+        {(['solar', 'lunar'] as const).map((cal) => (
+          <button key={cal} type="button" onClick={() => onChange(cal)}
+            className={[
+              'flex-1 py-5 border-2 rounded font-mono text-lg font-bold transition-all',
+              value === cal
+                ? 'border-[#D4A020] bg-[#D4A020]/15 text-[#FFD060]'
+                : 'border-[#2a1e08] text-[#8A6618] hover:border-[#D4A020]/50',
+            ].join(' ')}>
+            {cal === 'solar' ? '양력 ☀️' : '음력 🌙'}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/input/steps/StepTime.tsx
+'use client';
+
+import { TimeGrid } from '../TimeGrid';
+
+interface StepTimeProps {
+  value: number | null;
+  onChange: (value: number | null) => void;
+}
+
+export function StepTime({ value, onChange }: StepTimeProps) {
+  return (
+    <div>
+      <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
+        태어난 시간을<br />아시나요?
+      </div>
+      <div className="text-[#8A6618] font-mono text-sm mb-6">
+        시주(時柱) — 네 번째 기둥. 모르셔도 괜찮습니다
+      </div>
+      <TimeGrid value={value} onChange={onChange} />
+    </div>
+  );
+}
+```
+
+```tsx
+// src/components/input/steps/StepGender.tsx
+'use client';
+
+interface StepGenderProps {
+  gender: 'male' | 'female';
+  maritalStatus: 'single' | 'married' | 'etc';
+  onGenderChange: (value: 'male' | 'female') => void;
+  onMaritalChange: (value: 'single' | 'married' | 'etc') => void;
+}
+
+export function StepGender({ gender, maritalStatus, onGenderChange, onMaritalChange }: StepGenderProps) {
+  return (
+    <div>
+      <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
+        마지막으로<br />성별과 결혼 여부는?
+      </div>
+      <div className="text-[#8A6618] font-mono text-sm mb-8">
+        운세 해석의 방향이 달라집니다
+      </div>
+      <div className="space-y-6">
+        <div>
+          <div className="text-[#D4A020] font-mono text-sm mb-2">성별</div>
+          <div className="flex gap-4">
+            {([['male', '남 ♂'], ['female', '여 ♀']] as const).map(([val, label]) => (
+              <button key={val} type="button" onClick={() => onGenderChange(val)}
+                className={[
+                  'flex-1 py-4 border-2 rounded font-mono text-base font-bold transition-all',
+                  gender === val
+                    ? 'border-[#D4A020] bg-[#D4A020]/15 text-[#FFD060]'
+                    : 'border-[#2a1e08] text-[#8A6618] hover:border-[#D4A020]/50',
+                ].join(' ')}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="text-[#D4A020] font-mono text-sm mb-2">결혼 여부</div>
+          <div className="flex gap-3">
+            {([['single', '미혼'], ['married', '기혼'], ['etc', '기타']] as const).map(([val, label]) => (
+              <button key={val} type="button" onClick={() => onMaritalChange(val)}
+                className={[
+                  'flex-1 py-3 border rounded font-mono text-sm transition-all',
+                  maritalStatus === val
+                    ? 'border-[#D4A020] bg-[#D4A020]/15 text-[#FFD060]'
+                    : 'border-[#2a1e08] text-[#8A6618] hover:border-[#D4A020]/50',
+                ].join(' ')}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] **Step 2: 커밋**
+
+```bash
+git add src/components/input/steps/
+git commit -m "feat: add 6 individual step components (SRP split)"
+```
+
+### Task 6b: StepInput 오케스트레이터
 
 **Files:**
 - Create: `src/components/input/StepInput.tsx`
 
-- [ ] **Step 1: StepInput.tsx 생성**
+- [ ] **Step 1: StepInput.tsx 생성 (오케스트레이터 전용)**
 
 ```tsx
 // src/components/input/StepInput.tsx
 'use client';
 
 import { useState, useCallback } from 'react';
-import { YearDrum } from './YearDrum';
-import { TimeGrid } from './TimeGrid';
+import { StepName } from './steps/StepName';
+import { StepYear } from './steps/StepYear';
+import { StepMonthDay } from './steps/StepMonthDay';
+import { StepCalendar } from './steps/StepCalendar';
+import { StepTime } from './steps/StepTime';
+import { StepGender } from './steps/StepGender';
 import type { BirthInfo } from '@/lib/saju/types';
 
 interface StepInputProps {
@@ -625,8 +893,8 @@ export function StepInput({ onComplete, loading }: StepInputProps) {
     onComplete(birthInfo);
   };
 
-  const inputClass = 'bg-transparent border-b border-[#D4A020]/40 text-[#E8D8C0] ' +
-    'font-mono outline-none focus:border-[#D4A020] w-full py-2 px-1 text-xl';
+  // 오케스트레이터: step 라우팅 + progress bar + 네비게이션만 담당
+  // 각 step UI는 개별 컴포넌트로 분리 (SRP)
 
   return (
     <div className="w-full max-w-md mx-auto px-4 flex flex-col min-h-screen py-8">
@@ -646,179 +914,14 @@ export function StepInput({ onComplete, loading }: StepInputProps) {
         {step} / {TOTAL_STEPS} · {STEP_LABELS[step - 1]}
       </div>
 
-      {/* Step content */}
+      {/* Step content — 각 step은 개별 컴포넌트 */}
       <div className="flex-1">
-
-        {step === 1 && (
-          <div>
-            <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
-              성함이<br />어떻게 되십니까?
-            </div>
-            <div className="text-[#8A6618] font-mono text-sm mb-8">
-              이름을 알아야 운명을 읽을 수 있습니다
-            </div>
-            <div className="border-b border-[#D4A020] pb-2 flex items-center gap-2">
-              <span className="text-[#8A6618] font-mono text-lg">›</span>
-              <input
-                type="text"
-                value={state.name}
-                onChange={(e) => update('name', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleNext()}
-                placeholder="홍길동"
-                className={inputClass}
-                autoFocus
-              />
-            </div>
-            <div className="text-[#555] font-mono text-xs mt-2">한글 또는 영문</div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
-              태어난 해는<br />언제인가요?
-            </div>
-            <div className="text-[#8A6618] font-mono text-sm mb-8">
-              간지(干支)의 첫 번째 기둥입니다
-            </div>
-            <YearDrum
-              value={state.year}
-              onChange={(y) => update('year', y)}
-            />
-          </div>
-        )}
-
-        {step === 3 && (
-          <div>
-            <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
-              태어난 월과<br />일은 언제인가요?
-            </div>
-            <div className="text-[#8A6618] font-mono text-sm mb-8">
-              두 번째, 세 번째 기둥을 세웁니다
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <div className="text-[#D4A020] font-mono text-sm mb-1">월</div>
-                <input
-                  type="number"
-                  value={state.month}
-                  onChange={(e) => update('month', e.target.value)}
-                  placeholder="6"
-                  min={1}
-                  max={12}
-                  className={inputClass}
-                  autoFocus
-                />
-              </div>
-              <div className="flex-1">
-                <div className="text-[#D4A020] font-mono text-sm mb-1">일</div>
-                <input
-                  type="number"
-                  value={state.day}
-                  onChange={(e) => update('day', e.target.value)}
-                  placeholder="15"
-                  min={1}
-                  max={31}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div>
-            <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
-              양력인가요,<br />음력인가요?
-            </div>
-            <div className="text-[#8A6618] font-mono text-sm mb-8">
-              달력 기준이 사주 계산에 영향을 줍니다
-            </div>
-            <div className="flex gap-4">
-              {(['solar', 'lunar'] as const).map((cal) => (
-                <button
-                  key={cal}
-                  type="button"
-                  onClick={() => update('calendarType', cal)}
-                  className={[
-                    'flex-1 py-5 border-2 rounded font-mono text-lg font-bold transition-all',
-                    state.calendarType === cal
-                      ? 'border-[#D4A020] bg-[#D4A020]/15 text-[#FFD060]'
-                      : 'border-[#2a1e08] text-[#8A6618] hover:border-[#D4A020]/50',
-                  ].join(' ')}
-                >
-                  {cal === 'solar' ? '양력 ☀️' : '음력 🌙'}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {step === 5 && (
-          <div>
-            <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
-              태어난 시간을<br />아시나요?
-            </div>
-            <div className="text-[#8A6618] font-mono text-sm mb-6">
-              시주(時柱) — 네 번째 기둥. 모르셔도 괜찮습니다
-            </div>
-            <TimeGrid value={state.hour} onChange={(v) => update('hour', v)} />
-          </div>
-        )}
-
-        {step === 6 && (
-          <div>
-            <div className="text-[#FFD060] font-mono text-2xl font-bold leading-tight mb-2">
-              마지막으로<br />성별과 결혼 여부는?
-            </div>
-            <div className="text-[#8A6618] font-mono text-sm mb-8">
-              운세 해석의 방향이 달라집니다
-            </div>
-            <div className="space-y-6">
-              <div>
-                <div className="text-[#D4A020] font-mono text-sm mb-2">성별</div>
-                <div className="flex gap-4">
-                  {([['male', '남 ♂'], ['female', '여 ♀']] as const).map(([val, label]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => update('gender', val)}
-                      className={[
-                        'flex-1 py-4 border-2 rounded font-mono text-base font-bold transition-all',
-                        state.gender === val
-                          ? 'border-[#D4A020] bg-[#D4A020]/15 text-[#FFD060]'
-                          : 'border-[#2a1e08] text-[#8A6618] hover:border-[#D4A020]/50',
-                      ].join(' ')}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="text-[#D4A020] font-mono text-sm mb-2">결혼 여부</div>
-                <div className="flex gap-3">
-                  {([['single', '미혼'], ['married', '기혼'], ['etc', '기타']] as const).map(([val, label]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => update('maritalStatus', val)}
-                      className={[
-                        'flex-1 py-3 border rounded font-mono text-sm transition-all',
-                        state.maritalStatus === val
-                          ? 'border-[#D4A020] bg-[#D4A020]/15 text-[#FFD060]'
-                          : 'border-[#2a1e08] text-[#8A6618] hover:border-[#D4A020]/50',
-                      ].join(' ')}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
+        {step === 1 && <StepName value={state.name} onChange={(v) => update('name', v)} onEnter={handleNext} />}
+        {step === 2 && <StepYear value={state.year} onChange={(v) => update('year', v)} />}
+        {step === 3 && <StepMonthDay month={state.month} day={state.day} onMonthChange={(v) => update('month', v)} onDayChange={(v) => update('day', v)} />}
+        {step === 4 && <StepCalendar value={state.calendarType} onChange={(v) => update('calendarType', v)} />}
+        {step === 5 && <StepTime value={state.hour} onChange={(v) => update('hour', v)} />}
+        {step === 6 && <StepGender gender={state.gender} maritalStatus={state.maritalStatus} onGenderChange={(v) => update('gender', v)} onMaritalChange={(v) => update('maritalStatus', v)} />}
       </div>
 
       {/* Error */}
@@ -1212,14 +1315,174 @@ git commit -m "feat: add EnvelopeReveal component with seal animation"
 
 ---
 
-## Task 9: 결과 페이지 envelope 단계 + 공유링크 추가
+## Task 9: 결과 페이지 개선 (SRP 분리)
+
+**SOLID 적용:** 7-phase 상태머신을 커스텀 훅으로 추출, 로딩 화면을 별도 컴포넌트로 분리.
+
+### Task 9a: useResultPhase 커스텀 훅
+
+**Files:**
+- Create: `src/hooks/useResultPhase.ts`
+
+- [ ] **Step 1: useResultPhase.ts 생성**
+
+```typescript
+// src/hooks/useResultPhase.ts
+'use client';
+
+import { useState, useCallback } from 'react';
+
+export type ResultPhase = 'loading' | 'particles' | 'envelope' | 'cardDraw' | 'revealed' | 'scrolling' | 'complete';
+
+export function useResultPhase(initialPhase: ResultPhase = 'loading') {
+  const [phase, setPhase] = useState<ResultPhase>(initialPhase);
+
+  const handleParticleComplete = useCallback((completedPhase: string) => {
+    if (completedPhase === 'gather') setPhase('envelope');
+  }, []);
+
+  const handleEnvelopeOpen = useCallback(() => {
+    setPhase('cardDraw');
+  }, []);
+
+  const handleRevealComplete = useCallback(() => {
+    setPhase('revealed');
+    setTimeout(() => setPhase('scrolling'), 300);
+  }, []);
+
+  const handleStreamingComplete = useCallback(() => {
+    setPhase('complete');
+  }, []);
+
+  const particlePhase = (() => {
+    switch (phase) {
+      case 'particles': return 'gather' as const;
+      case 'envelope': return 'idle' as const;
+      case 'cardDraw': return 'burst' as const;
+      case 'revealed':
+      case 'scrolling': return 'idle' as const;
+      default: return 'done' as const;
+    }
+  })();
+
+  return {
+    phase,
+    setPhase,
+    particlePhase,
+    handleParticleComplete,
+    handleEnvelopeOpen,
+    handleRevealComplete,
+    handleStreamingComplete,
+  };
+}
+```
+
+- [ ] **Step 2: 커밋**
+
+```bash
+git add src/hooks/useResultPhase.ts
+git commit -m "feat: extract useResultPhase hook from result page (SRP)"
+```
+
+### Task 9b: ResultLoading 컴포넌트
+
+**Files:**
+- Create: `src/components/result/ResultLoading.tsx`
+
+- [ ] **Step 1: ResultLoading.tsx 생성**
+
+`src/app/result/page.tsx`의 로딩 화면 JSX를 별도 컴포넌트로 추출:
+
+```tsx
+// src/components/result/ResultLoading.tsx
+'use client';
+
+export function ResultLoading() {
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div
+        className="mb-8 flex items-center justify-center rounded-full"
+        style={{
+          width: 100, height: 100,
+          background: 'radial-gradient(circle, rgba(212,160,32,0.2) 0%, rgba(212,160,32,0.04) 60%, transparent 100%)',
+          border: '1px solid rgba(212,160,32,0.25)',
+          boxShadow: '0 0 32px rgba(212,160,32,0.15)',
+        }}
+      >
+        <span style={{ fontSize: 40 }}>☯</span>
+      </div>
+      <div className="text-[#FFD060] font-mono text-lg font-bold mb-3">운명을 읽는 중...</div>
+      <div className="text-[#8A6618] font-mono text-sm mb-8 leading-relaxed">
+        사주팔자를 계산하고<br />AI가 해석하고 있습니다
+      </div>
+      <div className="w-full max-w-xs space-y-3">
+        {[
+          { done: true, label: '사주팔자 계산 완료' },
+          { done: false, label: '오행 균형 분석 중...' },
+          { done: false, label: '카드 생성 대기중' },
+        ].map(({ done, label }, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <div
+              className="flex-shrink-0 flex items-center justify-center rounded-full"
+              style={{
+                width: 18, height: 18,
+                background: done ? '#68d391' : i === 1 ? '#D4A020' : '#2a1e08',
+                border: i === 2 ? '1px solid #3a2a08' : 'none',
+                fontSize: 10,
+              }}
+            >
+              {done ? '✓' : i === 1 ? '◐' : ''}
+            </div>
+            <span
+              className="font-mono text-sm"
+              style={{ color: done ? '#68d391' : i === 1 ? '#D4A020' : '#3a2a08' }}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
+```
+
+- [ ] **Step 2: 커밋**
+
+```bash
+git add src/components/result/ResultLoading.tsx
+git commit -m "feat: add ResultLoading component (SRP split)"
+```
+
+### Task 9c: 결과 페이지 통합
 
 **Files:**
 - Modify: `src/app/result/page.tsx`
 
-- [ ] **Step 0: 로딩 화면 추가 (초기화 중 빈 화면 대체)**
+- [ ] **Step 0: import 및 초기화 교체**
 
-`src/app/result/page.tsx`에서 `if (!initialized || !sajuResult) return null;` 줄을 다음으로 교체:
+`src/app/result/page.tsx` 상단에 추가/교체:
+```typescript
+import { useResultPhase } from '@/hooks/useResultPhase';
+import { ResultLoading } from '@/components/result/ResultLoading';
+import { EnvelopeReveal } from '@/components/result/EnvelopeReveal';
+import { encodeShareToken } from '@/lib/share/tokenCodec';
+import { useToast } from '@/hooks/useToast';
+```
+
+기존 `type Phase = ...` 및 `const [phase, setPhase]` 제거. 대신:
+```typescript
+const { phase, setPhase, particlePhase, handleParticleComplete, handleEnvelopeOpen, handleRevealComplete, handleStreamingComplete } = useResultPhase();
+const { show: showToast, ToastUI } = useToast();
+```
+
+`if (!initialized || !sajuResult) return <ResultLoading />;` 로 교체.
+
+기존 `handleParticlePhaseComplete`, `handleRevealComplete`, `particlePhase` 계산 로직 제거 (훅으로 이동됨).
+
+- [ ] **Step 1: envelope 렌더 + 공유링크 추가**
+
+GoldParticles 다음에 envelope 삽입:
 
 ```tsx
 if (!initialized || !sajuResult) {
@@ -1816,6 +2079,84 @@ npm run dev
 ```bash
 git add src/app/share/
 git commit -m "feat: add share card teaser page at /share/[token]"
+```
+
+---
+
+## Task 13: 미사용 코드 정리
+
+**목적:** 리디자인 후 더 이상 사용되지 않는 코드를 정리하여 코드베이스를 깨끗하게 유지.
+
+**Files:**
+- Potentially delete/modify: 아래 확인 후 결정
+
+- [ ] **Step 1: 미사용 import/컴포넌트 확인**
+
+```bash
+# CompactHeader — 기존 랜딩에서 사용, 리디자인 후 page.tsx에서 제거됨
+grep -r "CompactHeader" src/ --include="*.tsx" --include="*.ts"
+
+# SajuForm — 궁합 페이지에서 사용 중인지 확인
+grep -r "SajuForm" src/ --include="*.tsx" --include="*.ts"
+
+# IntroAnimation — 새 page.tsx에서 계속 사용하는지 확인
+grep -r "IntroAnimation" src/ --include="*.tsx" --include="*.ts"
+```
+
+- [ ] **Step 2: CompactHeader 삭제 (미사용 시)**
+
+CompactHeader가 page.tsx 외 다른 곳에서 사용되지 않으면:
+```bash
+rm src/components/intro/CompactHeader.tsx
+```
+
+- [ ] **Step 3: SajuForm 유지 확인**
+
+SajuForm은 `/result/compatibility/page.tsx`에서 사용 중이므로 **삭제하지 않음**.
+궁합 페이지가 정상 작동하는지 확인:
+```bash
+grep -r "SajuForm" src/app/result/compatibility/
+```
+
+- [ ] **Step 4: 기존 MUD 관련 코드 확인 (선택)**
+
+리디자인으로 MUD 엔진(`src/lib/mud/`)이 더 이상 사용되지 않는다면 확인:
+```bash
+grep -r "mud\|commandParser\|rooms" src/app/ src/components/ src/hooks/ --include="*.tsx" --include="*.ts"
+```
+
+MUD 코드가 어디에서도 import되지 않으면 삭제 대상.
+**주의:** 아직 사용 중일 수 있으므로 반드시 grep 확인 후 결정.
+
+- [ ] **Step 5: 미사용 CSS 클래스 확인**
+
+```bash
+# 기존 인트로/폼 관련 CSS 클래스 (fading-in, form-container 등)
+grep -r "intro-container\|form-container\|fading-in" src/ --include="*.tsx" --include="*.ts"
+```
+
+새 page.tsx에서 사용하지 않는 CSS 클래스는 `globals.css`에서 제거.
+
+- [ ] **Step 6: 빌드 + lint 확인**
+
+```bash
+npm run build && npm run lint
+```
+
+Expected: 미사용 코드 제거 후에도 빌드/lint 통과
+
+- [ ] **Step 7: 커밋**
+
+```bash
+git add -A
+git commit -m "chore: remove unused components and CSS after UX redesign
+
+Removed: CompactHeader (replaced by hero landing)
+Removed: form-container/intro-container CSS (replaced by phase system)
+Kept: SajuForm (still used by compatibility page)
+
+Scope-risk: narrow
+Confidence: high"
 ```
 
 ---

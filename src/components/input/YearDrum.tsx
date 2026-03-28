@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 const STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
 const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
@@ -29,74 +29,112 @@ interface YearDrumProps {
 
 export function YearDrum({ value, onChange, min = 1930, max = new Date().getFullYear() }: YearDrumProps) {
   const touchStartY = useRef<number | null>(null);
+  const [direction, setDirection] = useState<'up' | 'down' | null>(null);
+  const animRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const changeYear = useCallback((delta: number) => {
+    const next = value + delta;
+    if (next < min || next > max) return;
+    setDirection(delta > 0 ? 'up' : 'down');
+    onChange(next);
+    if (animRef.current) clearTimeout(animRef.current);
+    animRef.current = setTimeout(() => setDirection(null), 200);
+  }, [value, min, max, onChange]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
-    if (e.deltaY > 0 && value < max) onChange(value + 1);
-    if (e.deltaY < 0 && value > min) onChange(value - 1);
-  }, [value, min, max, onChange]);
+    if (e.deltaY > 0) changeYear(1);
+    if (e.deltaY < 0) changeYear(-1);
+  }, [changeYear]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
-    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
+    const deltaY = touchStartY.current - e.touches[0].clientY;
+    if (Math.abs(deltaY) >= 30) {
+      changeYear(deltaY > 0 ? 1 : -1);
+      touchStartY.current = e.touches[0].clientY;
+    }
+  }, [changeYear]);
+
+  const handleTouchEnd = useCallback(() => {
     touchStartY.current = null;
-    if (Math.abs(deltaY) < 20) return; // ignore small swipes
-    if (deltaY > 0 && value < max) onChange(value + 1);  // swipe up = increase
-    if (deltaY < 0 && value > min) onChange(value - 1);  // swipe down = decrease
-  }, [value, min, max, onChange]);
+  }, []);
 
-  const decrement = useCallback(() => {
-    if (value > min) onChange(value - 1);
-  }, [value, min, onChange]);
+  const prev2 = getGanji(value - 2);
+  const prev1 = getGanji(value - 1);
+  const curr = getGanji(value);
+  const next1 = getGanji(value + 1);
+  const next2 = getGanji(value + 2);
 
-  const increment = useCallback(() => {
-    if (value < max) onChange(value + 1);
-  }, [value, max, onChange]);
-
-  const { ganji, animal, emoji } = getGanji(value);
+  const slideClass = direction === 'up'
+    ? 'translate-y-[-8px] opacity-90'
+    : direction === 'down'
+    ? 'translate-y-[8px] opacity-90'
+    : 'translate-y-0 opacity-100';
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <div className="flex flex-col items-center gap-4 w-full select-none">
+      {/* Drum area */}
       <div
-          className="w-full flex flex-col items-center"
-          onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-        <div className="text-[#3a2a08] font-mono text-xl py-2">{value - 1}</div>
-        <div className="relative w-full flex items-center justify-center border-t border-b border-[#D4A020] py-4 bg-[#D4A020]/5">
-          <button
-            type="button"
-            onClick={decrement}
-            disabled={value <= min}
-            className="absolute left-4 text-[#D4A020] text-2xl font-bold disabled:text-[#2a1e08] min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="이전 연도"
-          >
-            ‹
-          </button>
-          <div className="text-center">
-            <div className="text-[#FFD060] font-mono text-4xl font-bold">{value}</div>
-            <div className="flex items-center gap-2 justify-center mt-1">
-              <span className="text-xl">{emoji}</span>
-              <span className="text-[#68d391] font-mono text-sm">{ganji} · {animal}띠</span>
-            </div>
+        className="w-full flex flex-col items-center cursor-ns-resize overflow-hidden"
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: 'none' }}
+      >
+        {/* -2 year (faintest) */}
+        {value - 2 >= min && (
+          <div className="text-[#1a1500] font-mono text-sm py-1 transition-all duration-200">
+            {value - 2} {prev2.emoji}
           </div>
-          <button
-            type="button"
-            onClick={increment}
-            disabled={value >= max}
-            className="absolute right-4 text-[#D4A020] text-2xl font-bold disabled:text-[#2a1e08] min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="다음 연도"
-          >
-            ›
-          </button>
+        )}
+
+        {/* -1 year (dim) */}
+        {value - 1 >= min && (
+          <div className="text-[#3a2a08] font-mono text-lg py-1.5 transition-all duration-200">
+            {value - 1} {prev1.emoji} {prev1.ganji}
+          </div>
+        )}
+
+        {/* Selected year (center) */}
+        <div
+          className={[
+            'w-full flex flex-col items-center border-t border-b border-[#D4A020] py-4 bg-[#D4A020]/5',
+            'transition-transform duration-200 ease-out',
+            slideClass,
+          ].join(' ')}
+        >
+          <div className="text-[#FFD060] font-mono text-4xl font-bold">{value}</div>
+          <div className="flex items-center gap-2 justify-center mt-1">
+            <span className="text-2xl">{curr.emoji}</span>
+            <span className="text-[#68d391] font-mono text-sm">{curr.ganji} · {curr.animal}띠</span>
+          </div>
         </div>
-        <div className="text-[#3a2a08] font-mono text-xl py-2">{value + 1}</div>
+
+        {/* +1 year (dim) */}
+        {value + 1 <= max && (
+          <div className="text-[#3a2a08] font-mono text-lg py-1.5 transition-all duration-200">
+            {value + 1} {next1.emoji} {next1.ganji}
+          </div>
+        )}
+
+        {/* +2 year (faintest) */}
+        {value + 2 <= max && (
+          <div className="text-[#1a1500] font-mono text-sm py-1 transition-all duration-200">
+            {value + 2} {next2.emoji}
+          </div>
+        )}
       </div>
+
+      {/* Scroll hint */}
+      <div className="text-[#555] font-mono text-[10px] tracking-wider">↕ 스크롤하여 선택</div>
+
+      {/* Direct input */}
       <div className="flex items-center gap-2">
         <span className="text-[#8A6618] font-mono text-sm">직접 입력:</span>
         <input

@@ -225,8 +225,9 @@ interface TimeOption {
   range: string;
 }
 
+// value must match SajuForm HOUR_OPTIONS (0,1,3,5,...21) — passed directly to calculateSaju
 const TIME_OPTIONS: TimeOption[] = [
-  { value: 23, label: '자시', hanja: '子', emoji: '🌙', range: '23:30~01:29' },
+  { value: 0,  label: '자시', hanja: '子', emoji: '🌙', range: '23:30~01:29' },
   { value: 1,  label: '축시', hanja: '丑', emoji: '🐄', range: '01:30~03:29' },
   { value: 3,  label: '인시', hanja: '寅', emoji: '🌄', range: '03:30~05:29' },
   { value: 5,  label: '묘시', hanja: '卯', emoji: '🌅', range: '05:30~07:29' },
@@ -1180,12 +1181,12 @@ const handleParticlePhaseComplete = useCallback((completedPhase: string) => {
 }, []);
 ```
 
-3. `particlePhase` 계산에 'envelope' 추가:
+3. `particlePhase` 계산에 'envelope' 추가 (envelope 중에는 idle, burst는 카드 등장 시):
 ```typescript
 const particlePhase = (() => {
   switch (phase) {
     case 'particles': return 'gather' as const;
-    case 'envelope':
+    case 'envelope': return 'idle' as const;
     case 'cardDraw': return 'burst' as const;
     case 'revealed':
     case 'scrolling': return 'idle' as const;

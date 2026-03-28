@@ -64,8 +64,8 @@
 - CTA 버튼: `linear-gradient(135deg, #D4A020, #FFD060)`, "지금 무료로 받기"
 
 ### ASCII 인트로 처리
-기존 ASCII 인트로 애니메이션은 **CTA 버튼 탭 후 로딩 전 단계**에 짧게 삽입하여 보존.
-랜딩 자체에서는 표시하지 않음.
+기존 ASCII 인트로 애니메이션은 **CTA 버튼 탭 후 6단계 입력 진입 전**에 짧게(2~3초) 삽입하여 보존.
+스킵 가능. 랜딩 히어로 자체에서는 표시하지 않음.
 
 ---
 
@@ -139,9 +139,9 @@ box-shadow:
 ```
 
 ### 공개 시퀀스 (기존 유지 + 봉투 추가)
-1. GoldParticles gather → burst (기존)
-2. 봉투 개봉 애니메이션 (신규)
-3. 카드 낙하 (card-draw-down, 기존)
+1. GoldParticles **gather** — 입자가 중심으로 수렴 (기존)
+2. 봉투 표시 → 사용자 탭으로 개봉 (신규)
+3. GoldParticles **burst** + 카드 낙하 (card-draw-down) — burst는 카드 등장과 동시 (기존)
 4. 3D 플립 (rotateY 180deg, 기존)
 5. 글로우 강화 후 정착
 
@@ -196,6 +196,9 @@ token = base64url(생년월일+시간+성별+역법)  // 이름 제외, ~20자
 <meta property="og:description" content="성장과 도전의 기운 — AI 사주명리의 미궁에서 나의 운명을 확인하세요" />
 ```
 
+**향후 우선순위: OG 이미지**
+현재는 텍스트 OG 태그만 포함. SNS 공유 클릭률을 높이려면 서버사이드 카드 이미지 생성(`/api/og?token=...`)이 필요하며, 이는 별도 태스크로 추후 추가.
+
 ---
 
 ## 9. 기술 구현 요약
@@ -214,10 +217,10 @@ token = base64url(생년월일+시간+성별+역법)  // 이름 제외, ~20자
 | 파일 | 변경 내용 |
 |------|---------|
 | `src/app/page.tsx` | 히어로 랜딩 B2로 교체 |
-| `src/components/form/SajuForm.tsx` | StepInput으로 교체 또는 래핑 |
+| `src/components/form/SajuForm.tsx` | 수정 없음 (궁합 페이지에서 계속 사용). page.tsx에서 StepInput으로 대체. |
 | `src/app/result/page.tsx` | 봉투 단계 + 공유 링크 버튼 추가 |
 | `src/lib/export/cardExport.ts` | 오행 4기둥 컬러 그리드 추가 |
-| `src/components/result/ShareButtons.tsx` | 공유 링크 복사 버튼 추가 |
+| `src/components/card/ShareButtons.tsx` | 공유 링크 복사 버튼 추가 |
 
 ### 변경 없는 핵심 로직
 - `calculateFullSaju()` — 사주 계산 로직

@@ -570,6 +570,7 @@ export interface ShareSummary {
   dominantElement: FiveElement;
   deficientElement: FiveElement;
   zodiacLabel: string;
+  wisdomQuote: string;
 }
 
 export function generateShareSummary(saju: SajuResult): ShareSummary {
@@ -586,6 +587,14 @@ export function generateShareSummary(saju: SajuResult): ShareSummary {
   const animal = saju.yearPillar.branch.animal;
   const zodiacLabel = `${saju.yearPillar.ganjiHanja}年生 ${animal}띠`;
 
+  const ELEMENT_WISDOM: Record<string, string> = {
+    wood: '나무는 바람에 흔들려도 뿌리가 깊으면 쓰러지지 않는 법이네.',
+    fire: '불꽃은 타오를수록 밝아지니, 열정을 두려워하지 말게.',
+    earth: '대지는 모든 것을 품으니, 너그러움이 곧 그대의 힘일세.',
+    metal: '금은 불에 달궈져야 빛이 나는 법이야. 시련이 곧 단련이네.',
+    water: '물은 낮은 곳으로 흘러 바다를 이루니, 겸손이 곧 그대의 그릇일세.',
+  };
+
   return {
     elementKeyword: personality.keyword,
     elementDesc: personality.desc,
@@ -594,5 +603,6 @@ export function generateShareSummary(saju: SajuResult): ShareSummary {
     dominantElement: dominant,
     deficientElement: deficient,
     zodiacLabel,
+    wisdomQuote: ELEMENT_WISDOM[dominant] ?? '길은 이미 당신 안에 있습니다.',
   };
 }

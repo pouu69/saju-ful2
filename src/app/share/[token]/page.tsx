@@ -196,13 +196,18 @@ export default async function SharePage({ params }: SharePageProps) {
           </div>
         </div>
 
-        {/* Locked full reading */}
+        {/* 현자의 한마디 */}
         <div
           className="rounded-lg p-4 text-center"
-          style={{ background: 'rgba(42,30,8,0.4)', border: '1px dashed rgba(212,160,32,0.2)' }}
+          style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
-          <div className="text-[#555] font-mono text-xs mb-1">🔒 전체 AI 풀이</div>
-          <div className="text-[#8A6618] font-mono text-xs">직접 받아야 볼 수 있습니다</div>
+          <div className="flex items-center gap-2 justify-center mb-2">
+            <span className="text-base">🧙</span>
+            <span className="text-[#D4A020] font-mono text-xs font-bold">현자의 한마디</span>
+          </div>
+          <div className="text-[#8A6618] font-mono text-xs leading-relaxed italic">
+            &ldquo;{summary.wisdomQuote}&rdquo;
+          </div>
         </div>
       </div>
 

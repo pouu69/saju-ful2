@@ -191,7 +191,7 @@ export default function ResultPage() {
               className="flex-1 py-3 border border-[#68d391]/50 text-[#68d391] font-mono text-sm
                 hover:bg-[#68d391]/10 transition-colors min-h-[44px] rounded"
             >
-              링크 복사
+              공유 링크
             </button>
             <a
               href={threadsUrl}

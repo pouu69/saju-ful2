@@ -39,6 +39,13 @@ const FOOTER_COLOR = '#6A5828';       // 하단 — 어두운 갈색
 // 오행별 색상 (공유 상수에서 가져옴)
 const ELEMENT_COLORS = ELEMENT_HEX;
 
+// 12간지 동물 이모지 맵
+const ANIMAL_EMOJI: Record<string, string> = {
+  '쥐': '🐭', '소': '🐄', '호랑이': '🐯', '토끼': '🐰',
+  '용': '🐉', '뱀': '🐍', '말': '🐎', '양': '🐑',
+  '원숭이': '🐒', '닭': '🐓', '개': '🐕', '돼지': '🐖',
+};
+
 const MAX_WISDOM_LINES = 8;
 const FONT_FAMILY = '"D2Coding", "D2 Coding", "Noto Sans Mono CJK KR", monospace';
 
@@ -204,9 +211,11 @@ export async function renderCardToPng(
   const wrappedWisdom = wrapTextPx(tmpCtx, wisdom, wisdomMaxW).slice(0, MAX_WISDOM_LINES);
 
   // 섹션별 높이 계산
-  const titleH = CARD_PAD_Y + LINE_HEIGHT * 3 + CARD_PAD_Y;
+  // 제목: 장식줄 + 한글제목 + 한자제목 = 3줄 → 4줄로 변경 (장식 헤더 추가)
+  const titleH = CARD_PAD_Y + LINE_HEIGHT * 4 + CARD_PAD_Y;
   const infoH = CARD_PAD_Y + LINE_HEIGHT * 2 + CARD_PAD_Y;
-  const artH = CARD_PAD_Y + LINE_HEIGHT * zodiacArt.length + CARD_PAD_Y;
+  // 동물 아트: 이모지 행(1.8 * LINE_HEIGHT) + 아트 줄 수
+  const artH = CARD_PAD_Y + Math.ceil(LINE_HEIGHT * 1.8) + LINE_HEIGHT * zodiacArt.length + CARD_PAD_Y;
   const wisdomH = CARD_PAD_Y + LINE_HEIGHT + 8 + LINE_HEIGHT * wrappedWisdom.length + CARD_PAD_Y;
   const pillarH = CARD_PAD_Y + LINE_HEIGHT * 3 + CARD_PAD_Y;
   // 요약: 제목 + 강한오행 + 약한오행 + 십성 + 신살(있으면)
@@ -234,11 +243,39 @@ export async function renderCardToPng(
   const cardW = CARD_W;
   const cardH = totalCardH;
 
+  // 외부 글로우 레이어 (더 넓고 부드러운 광원)
   ctx.shadowColor = BORDER_COLOR;
-  ctx.shadowBlur = 15;
+  ctx.shadowBlur = 28;
   ctx.strokeStyle = BORDER_COLOR;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(cardX, cardY, cardW, cardH);
+  ctx.lineWidth = 1;
+  const R = 6; // 모서리 반경
+  ctx.beginPath();
+  ctx.moveTo(cardX + R, cardY);
+  ctx.lineTo(cardX + cardW - R, cardY);
+  ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + R);
+  ctx.lineTo(cardX + cardW, cardY + cardH - R);
+  ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - R, cardY + cardH);
+  ctx.lineTo(cardX + R, cardY + cardH);
+  ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - R);
+  ctx.lineTo(cardX, cardY + R);
+  ctx.quadraticCurveTo(cardX, cardY, cardX + R, cardY);
+  ctx.closePath();
+  ctx.stroke();
+  // 내부 밝은 테두리 선
+  ctx.shadowBlur = 6;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cardX + R, cardY);
+  ctx.lineTo(cardX + cardW - R, cardY);
+  ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + R);
+  ctx.lineTo(cardX + cardW, cardY + cardH - R);
+  ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - R, cardY + cardH);
+  ctx.lineTo(cardX + R, cardY + cardH);
+  ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - R);
+  ctx.lineTo(cardX, cardY + R);
+  ctx.quadraticCurveTo(cardX, cardY, cardX + R, cardY);
+  ctx.closePath();
+  ctx.stroke();
   ctx.shadowBlur = 0;
 
   // ── 폰트 설정 ──
@@ -254,6 +291,8 @@ export async function renderCardToPng(
 
   // ── 1) 제목 섹션 ──
   curY += CARD_PAD_Y + LINE_HEIGHT * 0.5;
+  drawCentered(ctx, '龍 ══ 사주명리의 미궁 ══ 鳳', centerX, curY, DIM_COLOR);
+  curY += LINE_HEIGHT;
   drawCentered(ctx, '사 주 명 리 의   미 궁', centerX, curY, TITLE_COLOR);
   curY += LINE_HEIGHT;
   drawCentered(ctx, '四 柱 命 理 의   迷 宮', centerX, curY, TITLE_HANJA_COLOR);
@@ -292,6 +331,13 @@ export async function renderCardToPng(
 
   // ── 3) 12지 동물 아트 ──
   curY += CARD_PAD_Y * 0.5;
+  // 동물 이모지 — serif 폰트로 크게 표시
+  const animalEmoji = ANIMAL_EMOJI[animal] ?? '⭐';
+  ctx.font = '32px serif';
+  drawCentered(ctx, animalEmoji, centerX, curY, ZODIAC_LABEL_COLOR);
+  curY += LINE_HEIGHT * 1.8;
+  // 폰트 복원
+  ctx.font = `${FONT_SIZE}px ${FONT_FAMILY}`;
   for (let ai = 0; ai < zodiacArt.length; ai++) {
     const artLine = zodiacArt[ai];
     // 동물 이름/한자가 포함된 줄은 밝은 청록, 나머지는 청록

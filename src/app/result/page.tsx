@@ -10,13 +10,17 @@ import { renderCardToPng } from '@/lib/export/cardExport';
 import { renderLuckCardToPng } from '@/lib/export/luckCardExport';
 import { CardPreview } from '@/components/card/CardPreview';
 import { ShareButtons } from '@/components/card/ShareButtons';
-
-type Phase = 'loading' | 'particles' | 'cardDraw' | 'revealed' | 'scrolling' | 'complete';
+import { useResultPhase } from '@/hooks/useResultPhase';
+import { ResultLoading } from '@/components/result/ResultLoading';
+import { EnvelopeReveal } from '@/components/result/EnvelopeReveal';
+import { encodeShareToken } from '@/lib/share/tokenCodec';
+import { useToast } from '@/hooks/useToast';
 
 export default function ResultPage() {
   const router = useRouter();
   const saju = useSaju();
-  const [phase, setPhase] = useState<Phase>('loading');
+  const { phase, setPhase, particlePhase, handleParticleComplete, handleRevealComplete, handleStreamingComplete } = useResultPhase();
+  const { show: showToast, ToastUI } = useToast();
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
   const [luckCardBlob, setLuckCardBlob] = useState<Blob | null>(null);
   const [showLuckCard, setShowLuckCard] = useState(false);
@@ -66,23 +70,6 @@ export default function ResultPage() {
     [sajuResult]
   );
 
-  // Handle particle phase transitions
-  const handleParticlePhaseComplete = useCallback((completedPhase: string) => {
-    if (completedPhase === 'gather') {
-      setPhase('cardDraw');
-    }
-  }, []);
-
-  // Handle card reveal completion
-  const handleRevealComplete = useCallback(() => {
-    setHasRevealed(true);
-    setPhase('revealed');
-    // Short delay, then start AI interpretation + scroll unfurl
-    setTimeout(() => {
-      setPhase('scrolling');
-    }, 300);
-  }, []);
-
   // Start AI streaming when scrolling phase begins
   useEffect(() => {
     if (phase === 'scrolling' && sajuResult && !saju.aiCache.synthesis) {
@@ -94,33 +81,25 @@ export default function ResultPage() {
   const prevStreaming = useRef(saju.streaming);
   useEffect(() => {
     if (prevStreaming.current && !saju.streaming && phase === 'scrolling') {
-      setPhase('complete');
+      handleStreamingComplete();
     }
     prevStreaming.current = saju.streaming;
-  }, [saju.streaming, phase]);
+  }, [saju.streaming, phase, handleStreamingComplete]);
 
   // Also mark complete if synthesis was cached
   useEffect(() => {
     if (phase === 'scrolling' && saju.aiCache.synthesis && !saju.streaming) {
-      setPhase('complete');
+      handleStreamingComplete();
     }
-  }, [phase, saju.aiCache.synthesis, saju.streaming]);
+  }, [phase, saju.aiCache.synthesis, saju.streaming, handleStreamingComplete]);
 
-  // Track whether reveal animation has played (prevent re-animation on re-renders)
-  const [hasRevealed, setHasRevealed] = useState(false);
+  const onRevealComplete = useCallback(() => {
+    handleRevealComplete();
+  }, [handleRevealComplete]);
 
-  // Determine particle phase based on page phase
-  const particlePhase = (() => {
-    switch (phase) {
-      case 'particles': return 'gather' as const;
-      case 'cardDraw': return 'burst' as const;
-      case 'revealed':
-      case 'scrolling': return 'idle' as const;
-      default: return 'done' as const;
-    }
-  })();
-
-  if (!initialized || !sajuResult) return null;
+  if (!initialized || !sajuResult) {
+    return <ResultLoading />;
+  }
 
   const cardFilename = `${sajuResult.birthInfo.name || '사주'}_사주카드_${new Date().toISOString().slice(0, 10)}.png`;
   const luckFilename = `${sajuResult.birthInfo.name || '사주'}_대운세운카드_${new Date().toISOString().slice(0, 10)}.png`;
@@ -135,7 +114,7 @@ export default function ResultPage() {
         phase={particlePhase}
         centerX={particleCenter.x}
         centerY={particleCenter.y}
-        onPhaseComplete={handleParticlePhaseComplete}
+        onPhaseComplete={handleParticleComplete}
       />
 
       {/* Header */}
@@ -148,13 +127,23 @@ export default function ResultPage() {
         </div>
       </div>
 
+      {/* Envelope Phase */}
+      {phase === 'envelope' && sajuResult && (
+        <div className="absolute inset-0 z-10">
+          <EnvelopeReveal
+            name={sajuResult.birthInfo.name}
+            onOpen={() => setPhase('cardDraw')}
+          />
+        </div>
+      )}
+
       {/* Card Reveal Area */}
       <div ref={cardAreaRef} className="w-full max-w-sm mx-auto mb-8">
         <CardReveal
           renderCard={renderBasicCard}
           onBlobReady={setCardBlob}
-          onRevealComplete={handleRevealComplete}
-          revealed={phase !== 'loading' && phase !== 'particles'}
+          onRevealComplete={onRevealComplete}
+          revealed={phase !== 'loading' && phase !== 'particles' && phase !== 'envelope'}
           blob={cardBlob}
           filename={cardFilename}
         />
@@ -218,6 +207,34 @@ export default function ResultPage() {
               ▶ 궁합 카드 만들기
             </button>
 
+            {sajuResult && (() => {
+              const token = encodeShareToken({
+                year: sajuResult.birthInfo.year,
+                month: sajuResult.birthInfo.month,
+                day: sajuResult.birthInfo.day,
+                hour: sajuResult.birthInfo.hour,
+                gender: sajuResult.birthInfo.gender,
+                calendarType: sajuResult.birthInfo.calendarType,
+              });
+              const shareUrl = `${window.location.origin}/share/${token}`;
+              return (
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(shareUrl);
+                      showToast('링크가 복사되었습니다!');
+                    } catch {
+                      showToast('링크: ' + shareUrl);
+                    }
+                  }}
+                  className="w-full py-3 border border-[#68d391]/50 text-[#68d391] font-mono
+                    hover:bg-[#68d391]/10 transition-colors min-h-[48px]"
+                >
+                  🔗 공유 링크 복사
+                </button>
+              );
+            })()}
+
             <button
               onClick={() => router.push('/')}
               className="w-full py-3 border border-[#D4A020]/30 text-[#8A7848] font-mono
@@ -228,6 +245,7 @@ export default function ResultPage() {
           </div>
         </section>
       )}
+      {ToastUI}
     </main>
   );
 }

@@ -92,11 +92,11 @@ export const TEN_GODS_MAP: Record<FiveElement, Record<FiveElement, [TenGodName, 
 
 // 오행별 색상 (hex) — Charts.ts, cardExport.ts 등에서 공유
 export const ELEMENT_HEX: Record<FiveElement, string> = {
-  wood:  '#44cc44',
-  fire:  '#ff5544',
-  earth: '#ccaa44',
-  metal: '#dddddd',
-  water: '#4488ff',
+  wood:  '#68d391',
+  fire:  '#fc8181',
+  earth: '#D4A020',
+  metal: '#e2e8f0',
+  water: '#76e4f7',
 };
 
 // 오행 한글/한자/영문

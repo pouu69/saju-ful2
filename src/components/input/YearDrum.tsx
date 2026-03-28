@@ -30,7 +30,7 @@ interface YearDrumProps {
 export function YearDrum({ value, onChange, min = 1930, max = new Date().getFullYear() }: YearDrumProps) {
   const touchStartY = useRef<number | null>(null);
   const [direction, setDirection] = useState<'up' | 'down' | null>(null);
-  const animRef = useRef<ReturnType<typeof setTimeout>>();
+  const animRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const changeYear = useCallback((delta: number) => {
     const next = value + delta;

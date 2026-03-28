@@ -108,7 +108,7 @@ export default async function SharePage({ params }: SharePageProps) {
         }}
       >
         <div className="text-[#FFD060] font-mono text-[9px] tracking-widest mb-3">龍 ══ 사주명리 ══ 鳳</div>
-        <div className="text-4xl mb-3">{ANIMAL_EMOJI[saju.yearPillar.branch.animal] ?? '⭐'}</div>
+        <div className="text-4xl mb-3">{ANIMAL_EMOJI[saju.yearPillar.branch.animal] ?? ''}</div>
 
         {/* 4-pillar color grid */}
         <div className="grid grid-cols-4 gap-1 mb-3">
@@ -150,8 +150,7 @@ export default async function SharePage({ params }: SharePageProps) {
           className="rounded-lg p-4"
           style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">🌿</span>
+          <div className="mb-1">
             <span className="text-[#D4A020] font-mono text-xs font-bold">오행 성향</span>
           </div>
           <div className="text-[#FFD060] font-mono text-sm font-bold">{summary.elementKeyword}</div>
@@ -163,8 +162,7 @@ export default async function SharePage({ params }: SharePageProps) {
           className="rounded-lg p-4"
           style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">☯</span>
+          <div className="mb-1">
             <span className="text-[#D4A020] font-mono text-xs font-bold">일간 성격</span>
           </div>
           <div className="text-[#FFD060] font-mono text-sm font-bold">{summary.dayMasterTheme}</div>
@@ -176,8 +174,7 @@ export default async function SharePage({ params }: SharePageProps) {
           className="rounded-lg p-4"
           style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-base">🍀</span>
+          <div className="mb-2">
             <span className="text-[#D4A020] font-mono text-xs font-bold">오행 균형</span>
           </div>
           <div className="flex gap-4 text-xs font-mono">
@@ -202,7 +199,7 @@ export default async function SharePage({ params }: SharePageProps) {
           style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">{ANIMAL_EMOJI[saju.yearPillar.branch.animal] ?? '⭐'}</span>
+            <span className="text-base">{ANIMAL_EMOJI[saju.yearPillar.branch.animal] ?? ''}</span>
             <span className="text-[#D4A020] font-mono text-xs font-bold">12간지</span>
           </div>
           <div className="text-[#FFD060] font-mono text-sm font-bold">{saju.yearPillar.branch.animal}띠</div>
@@ -214,8 +211,7 @@ export default async function SharePage({ params }: SharePageProps) {
           className="rounded-lg p-4"
           style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">⚖️</span>
+          <div className="mb-1">
             <span className="text-[#D4A020] font-mono text-xs font-bold">주요 십성</span>
           </div>
           <div className="text-[#FFD060] font-mono text-sm font-bold">{summary.topTenGods}</div>
@@ -227,8 +223,7 @@ export default async function SharePage({ params }: SharePageProps) {
           className="rounded-lg p-4 text-center"
           style={{ background: 'rgba(212,160,32,0.06)', border: '1px solid rgba(212,160,32,0.15)' }}
         >
-          <div className="flex items-center gap-2 justify-center mb-2">
-            <span className="text-base">🧙</span>
+          <div className="mb-2">
             <span className="text-[#D4A020] font-mono text-xs font-bold">현자의 한마디</span>
           </div>
           <div className="text-[#8A6618] font-mono text-xs leading-relaxed italic">

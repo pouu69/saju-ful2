@@ -232,6 +232,7 @@ export default function ResultPage() {
               </div>
             )}
 
+            {/* 궁합 카드 — 다음 phase에서 재개발 예정
             <button
               onClick={() => router.push('/result/compatibility')}
               className="w-full py-3 border border-[#D4A020]/50 text-[#D4A020] font-mono
@@ -239,6 +240,7 @@ export default function ResultPage() {
             >
               ▶ 궁합 카드 만들기
             </button>
+            */}
 
             <button
               onClick={() => router.push('/')}

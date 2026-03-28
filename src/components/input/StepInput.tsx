@@ -22,7 +22,6 @@ interface StepState {
   calendarType: 'solar' | 'lunar';
   hour: number | null;
   gender: 'male' | 'female';
-  maritalStatus: 'single' | 'married' | 'etc';
 }
 
 const TOTAL_STEPS = 6;
@@ -38,7 +37,6 @@ export function StepInput({ onComplete, loading }: StepInputProps) {
     calendarType: 'solar',
     hour: null,
     gender: 'male',
-    maritalStatus: 'single',
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +79,7 @@ export function StepInput({ onComplete, loading }: StepInputProps) {
       minute: 0,
       gender: state.gender,
       calendarType: state.calendarType,
-      maritalStatus: state.maritalStatus,
+      maritalStatus: 'etc',
     };
     onComplete(birthInfo);
   };
@@ -109,7 +107,7 @@ export function StepInput({ onComplete, loading }: StepInputProps) {
         {step === 3 && <StepMonthDay month={state.month} day={state.day} onMonthChange={(v) => update('month', v)} onDayChange={(v) => update('day', v)} />}
         {step === 4 && <StepCalendar value={state.calendarType} onChange={(v) => update('calendarType', v)} />}
         {step === 5 && <StepTime value={state.hour} onChange={(v) => update('hour', v)} />}
-        {step === 6 && <StepGender gender={state.gender} maritalStatus={state.maritalStatus} onGenderChange={(v) => update('gender', v)} onMaritalChange={(v) => update('maritalStatus', v)} />}
+        {step === 6 && <StepGender gender={state.gender} onGenderChange={(v) => update('gender', v)} />}
       </div>
 
       {error && (

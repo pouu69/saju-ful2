@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 const STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
 const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
@@ -28,6 +28,27 @@ interface YearDrumProps {
 }
 
 export function YearDrum({ value, onChange, min = 1930, max = new Date().getFullYear() }: YearDrumProps) {
+  const touchStartY = useRef<number | null>(null);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0 && value < max) onChange(value + 1);
+    if (e.deltaY < 0 && value > min) onChange(value - 1);
+  }, [value, min, max, onChange]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const deltaY = touchStartY.current - e.changedTouches[0].clientY;
+    touchStartY.current = null;
+    if (Math.abs(deltaY) < 20) return; // ignore small swipes
+    if (deltaY > 0 && value < max) onChange(value + 1);  // swipe up = increase
+    if (deltaY < 0 && value > min) onChange(value - 1);  // swipe down = decrease
+  }, [value, min, max, onChange]);
+
   const decrement = useCallback(() => {
     if (value > min) onChange(value - 1);
   }, [value, min, onChange]);
@@ -40,7 +61,12 @@ export function YearDrum({ value, onChange, min = 1930, max = new Date().getFull
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-      <div className="w-full flex flex-col items-center">
+      <div
+          className="w-full flex flex-col items-center"
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
         <div className="text-[#3a2a08] font-mono text-xl py-2">{value - 1}</div>
         <div className="relative w-full flex items-center justify-center border-t border-b border-[#D4A020] py-4 bg-[#D4A020]/5">
           <button

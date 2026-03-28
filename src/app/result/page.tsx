@@ -20,7 +20,7 @@ export default function ResultPage() {
   const router = useRouter();
   const saju = useSaju();
   const { phase, setPhase, particlePhase, handleParticleComplete, handleRevealComplete, handleStreamingComplete } = useResultPhase();
-  const { ToastUI } = useToast();
+  const { show: showToast, ToastUI } = useToast();
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
   const [luckCardBlob, setLuckCardBlob] = useState<Blob | null>(null);
   const [showLuckCard, setShowLuckCard] = useState(false);
@@ -151,21 +151,36 @@ export default function ResultPage() {
         />
       </div>
 
-      {/* Card Actions — visible immediately after card reveal */}
-      {(phase === 'revealed' || phase === 'scrolling' || phase === 'complete') && sajuResult && (
-        <div className="w-full max-w-sm mx-auto mb-6 flex gap-3 justify-center">
-          <ShareButtons blob={cardBlob} filename={cardFilename} shareToken={
-            encodeShareToken({
-              year: sajuResult.birthInfo.year,
-              month: sajuResult.birthInfo.month,
-              day: sajuResult.birthInfo.day,
-              hour: sajuResult.birthInfo.hour,
-              gender: sajuResult.birthInfo.gender,
-              calendarType: sajuResult.birthInfo.calendarType,
-            })
-          } />
-        </div>
-      )}
+      {/* Share link — visible after card reveal */}
+      {(phase === 'revealed' || phase === 'scrolling' || phase === 'complete') && sajuResult && (() => {
+        const token = encodeShareToken({
+          year: sajuResult.birthInfo.year,
+          month: sajuResult.birthInfo.month,
+          day: sajuResult.birthInfo.day,
+          hour: sajuResult.birthInfo.hour,
+          gender: sajuResult.birthInfo.gender,
+          calendarType: sajuResult.birthInfo.calendarType,
+        });
+        const shareUrl = `${window.location.origin}/share/${token}`;
+        return (
+          <div className="w-full max-w-sm mx-auto mb-6 flex justify-center">
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(shareUrl);
+                  showToast('링크가 복사되었습니다!');
+                } catch {
+                  showToast('링크: ' + shareUrl);
+                }
+              }}
+              className="px-6 py-3 border border-[#68d391]/50 text-[#68d391] font-mono text-sm
+                hover:bg-[#68d391]/10 transition-colors min-h-[44px] rounded"
+            >
+              🔗 공유 링크 복사
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Scroll (두루마리) AI Interpretation */}
       <section className="w-full max-w-lg mb-6">

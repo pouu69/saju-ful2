@@ -15,6 +15,7 @@
 | 작업 | 파일 | 변경 |
 |------|------|------|
 | Task 1 | `src/app/globals.css` | 오행 CSS 변수 추가 |
+| Task 1b | `src/hooks/useToast.ts` | 신규: 간단 toast hook (공유 링크 복사 알림용) |
 | Task 2 | `src/lib/share/tokenCodec.ts` | 신규: base64url 인코더/디코더 |
 | Task 3 | `src/lib/ai/templates.ts` | `generateShareSummary` 함수 export 추가 |
 | Task 4 | `src/components/input/TimeGrid.tsx` | 신규: 시진 그리드 |
@@ -59,6 +60,75 @@ Expected: no errors
 ```bash
 git add src/app/globals.css
 git commit -m "feat: add ohaeng CSS custom properties"
+```
+
+---
+
+## Task 1b: Toast Hook 추가
+
+**Files:**
+- Create: `src/hooks/useToast.ts`
+
+- [ ] **Step 1: useToast.ts 생성**
+
+```typescript
+// src/hooks/useToast.ts
+'use client';
+
+import { useState, useCallback, useRef } from 'react';
+
+interface ToastState {
+  message: string;
+  visible: boolean;
+}
+
+export function useToast(duration = 2000) {
+  const [toast, setToast] = useState<ToastState>({ message: '', visible: false });
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const show = useCallback((message: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setToast({ message, visible: true });
+    timerRef.current = setTimeout(() => {
+      setToast((prev) => ({ ...prev, visible: false }));
+    }, duration);
+  }, [duration]);
+
+  const ToastUI = toast.visible ? (
+    <div
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50
+        px-5 py-3 rounded-lg font-mono text-sm
+        text-[#080600] font-bold
+        animate-[fadeInUp_0.3s_ease]"
+      style={{
+        background: 'linear-gradient(135deg, #D4A020, #FFD060)',
+        boxShadow: '0 4px 16px rgba(212,160,32,0.4)',
+      }}
+    >
+      {toast.message}
+    </div>
+  ) : null;
+
+  return { show, ToastUI };
+}
+```
+
+- [ ] **Step 2: globals.css에 fadeInUp 키프레임 추가**
+
+`src/app/globals.css`에 `@keyframes` 섹션 근처에 추가:
+
+```css
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+```
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add src/hooks/useToast.ts src/app/globals.css
+git commit -m "feat: add useToast hook for copy-link feedback"
 ```
 
 ---
@@ -1206,6 +1276,12 @@ revealed={phase !== 'loading' && phase !== 'particles' && phase !== 'envelope'}
 ```typescript
 import { EnvelopeReveal } from '@/components/result/EnvelopeReveal';
 import { encodeShareToken } from '@/lib/share/tokenCodec';
+import { useToast } from '@/hooks/useToast';
+```
+
+`ResultPage` 함수 상단에 추가:
+```typescript
+const { show: showToast, ToastUI } = useToast();
 ```
 
 return 문 안에 GoldParticles 다음에 추가:
@@ -1238,9 +1314,14 @@ return 문 안에 GoldParticles 다음에 추가:
   const shareUrl = `${window.location.origin}/share/${token}`;
   return (
     <button
-      onClick={() => {
-        navigator.clipboard.writeText(shareUrl).catch(() => {});
-        alert('링크가 복사되었습니다!');
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          showToast('링크가 복사되었습니다!');
+        } catch {
+          // HTTPS 아닌 환경 fallback
+          showToast('링크: ' + shareUrl);
+        }
       }}
       className="w-full py-3 border border-[#68d391]/50 text-[#68d391] font-mono
         hover:bg-[#68d391]/10 transition-colors min-h-[48px]"
@@ -1372,6 +1453,7 @@ git commit -m "feat: add ohaeng color grid to card canvas export"
 'use client';
 
 import { useShare } from '@/hooks/useShare';
+import { useToast } from '@/hooks/useToast';
 
 interface ShareButtonsProps {
   blob: Blob | null;
@@ -1382,11 +1464,17 @@ interface ShareButtonsProps {
 export function ShareButtons({ blob, filename, shareToken }: ShareButtonsProps) {
   const { shareCard, downloadCard, sharing, canNativeShare } = useShare();
 
-  const handleCopyLink = () => {
+  const { show: showToast, ToastUI } = useToast();
+
+  const handleCopyLink = async () => {
     if (!shareToken) return;
     const url = `${window.location.origin}/share/${shareToken}`;
-    navigator.clipboard.writeText(url).catch(() => {});
-    alert('링크가 복사되었습니다!');
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('링크가 복사되었습니다!');
+    } catch {
+      showToast('링크: ' + url);
+    }
   };
 
   if (!blob && !shareToken) return null;
@@ -1422,6 +1510,7 @@ export function ShareButtons({ blob, filename, shareToken }: ShareButtonsProps) 
           🔗 링크 복사
         </button>
       )}
+      {ToastUI}
     </div>
   );
 }

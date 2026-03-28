@@ -1542,9 +1542,10 @@ git commit -m "feat: add share link copy button to ShareButtons"
 
 ```tsx
 // src/app/share/[token]/page.tsx
-import { decodeShareToken } from '@/lib/share/tokenCodec';
+import { decodeShareToken, type ShareTokenData } from '@/lib/share/tokenCodec';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generateShareSummary } from '@/lib/ai/templates';
+import type { BirthInfo } from '@/lib/saju/types';
 import type { Metadata } from 'next';
 
 interface SharePageProps {
@@ -1556,20 +1557,8 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   const data = decodeShareToken(token);
   if (!data) return { title: '사주명리의 미궁' };
 
-  const birthInfo = {
-    name: '',
-    year: data.year,
-    month: data.month,
-    day: data.day,
-    hour: data.hour,
-    minute: 0,
-    gender: data.gender,
-    calendarType: data.calendarType,
-    maritalStatus: 'etc' as const,
-  };
-
   try {
-    const saju = calculateFullSaju(birthInfo);
+    const saju = calculateFullSaju(buildBirthInfoFromToken(data));
     const summary = generateShareSummary(saju);
     return {
       title: `${summary.zodiacLabel} 사주카드 — 사주명리의 미궁`,
@@ -1583,9 +1572,32 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
 const ELEMENT_COLOR: Record<string, string> = {
   wood: '#68d391', fire: '#fc8181', earth: '#D4A020', metal: '#e2e8f0', water: '#76e4f7',
 };
-const ELEMENT_HANJA: Record<string, string> = {
-  wood: '木', fire: '火', earth: '土', metal: '金', water: '水',
+const ELEMENT_LABEL: Record<string, { hanja: string; korean: string }> = {
+  wood: { hanja: '木', korean: '나무' },
+  fire: { hanja: '火', korean: '불' },
+  earth: { hanja: '土', korean: '흙' },
+  metal: { hanja: '金', korean: '쇠' },
+  water: { hanja: '水', korean: '물' },
 };
+const ANIMAL_EMOJI: Record<string, string> = {
+  '쥐': '🐭', '소': '🐄', '호랑이': '🐯', '토끼': '🐰',
+  '용': '🐉', '뱀': '🐍', '말': '🐎', '양': '🐑',
+  '원숭이': '🐒', '닭': '🐓', '개': '🐕', '돼지': '🐖',
+};
+
+function buildBirthInfoFromToken(data: ShareTokenData): BirthInfo {
+  return {
+    name: '',
+    year: data.year,
+    month: data.month,
+    day: data.day,
+    hour: data.hour,
+    minute: 0,
+    gender: data.gender,
+    calendarType: data.calendarType,
+    maritalStatus: 'etc' as const,
+  };
+}
 
 export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params;
@@ -1602,21 +1614,9 @@ export default async function SharePage({ params }: SharePageProps) {
     );
   }
 
-  const birthInfo = {
-    name: '',
-    year: data.year,
-    month: data.month,
-    day: data.day,
-    hour: data.hour,
-    minute: 0,
-    gender: data.gender,
-    calendarType: data.calendarType,
-    maritalStatus: 'etc' as const,
-  };
-
   let saju;
   try {
-    saju = calculateFullSaju(birthInfo);
+    saju = calculateFullSaju(buildBirthInfoFromToken(data));
   } catch {
     return (
       <main className="min-h-screen flex items-center justify-center px-6 text-center">
@@ -1657,7 +1657,7 @@ export default async function SharePage({ params }: SharePageProps) {
         }}
       >
         <div className="text-[#FFD060] font-mono text-[9px] tracking-widest mb-3">龍 ══ 사주명리 ══ 鳳</div>
-        <div className="text-4xl mb-3">{saju.yearPillar.branch.animal === '용' ? '🐉' : '⭐'}</div>
+        <div className="text-4xl mb-3">{ANIMAL_EMOJI[saju.yearPillar.branch.animal] ?? '⭐'}</div>
 
         {/* 4-pillar color grid */}
         <div className="grid grid-cols-4 gap-1 mb-3">
@@ -1676,7 +1676,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 <span className="font-mono text-sm font-bold" style={{ color }}>
                   {pillar?.stem.hanja ?? '?'}
                 </span>
-                <span className="font-mono text-[9px]" style={{ color }}>{ELEMENT_HANJA[el]}</span>
+                <span className="font-mono text-[9px]" style={{ color }}>{ELEMENT_LABEL[el]?.hanja}</span>
                 <span className="font-mono text-[8px] text-[#555]">{label}</span>
               </div>
             );
@@ -1733,13 +1733,13 @@ export default async function SharePage({ params }: SharePageProps) {
             <div>
               <span className="text-[#8A6618]">강한 기운 </span>
               <span style={{ color: dominantColor }}>
-                {ELEMENT_HANJA[summary.dominantElement]} {summary.dominantElement}
+                {ELEMENT_LABEL[summary.dominantElement]?.hanja} {ELEMENT_LABEL[summary.dominantElement]?.korean}
               </span>
             </div>
             <div>
               <span className="text-[#8A6618]">부족한 기운 </span>
               <span style={{ color: deficientColor }}>
-                {ELEMENT_HANJA[summary.deficientElement]} {summary.deficientElement}
+                {ELEMENT_LABEL[summary.deficientElement]?.hanja} {ELEMENT_LABEL[summary.deficientElement]?.korean}
               </span>
             </div>
           </div>

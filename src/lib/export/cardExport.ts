@@ -4,40 +4,30 @@
  */
 
 import { SajuResult } from '@/lib/saju/types';
-import { ELEMENT_NAMES, ELEMENT_HEX } from '@/lib/saju/constants';
+import { ELEMENT_NAMES } from '@/lib/saju/constants';
 import { countTenGods } from '@/lib/saju/helpers';
+import { logger } from '@/lib/logger';
 import { getZodiacArt } from './zodiacArt';
+import {
+  FONT_SIZE, LINE_HEIGHT, CARD_PAD_X, CARD_PAD_Y, MARGIN, SECTION_GAP,
+  BG_COLOR, BORDER_COLOR, TITLE_COLOR, TITLE_HANJA_COLOR, FOOTER_COLOR,
+  ELEMENT_COLORS, FONT_FAMILY,
+  wrapTextPx, drawCentered, drawLeft, drawLabelValue, drawHLine, drawCardBorder,
+} from './cardConstants';
 
-// ── Canvas 렌더링 설정 ──
-const FONT_SIZE = 16;
-const LINE_HEIGHT = 22;
-const CARD_INNER_W = 520;     // 카드 내부 너비 (px)
-const CARD_PAD_X = 24;        // 카드 내부 좌우 패딩
-const CARD_PAD_Y = 16;        // 카드 내부 상하 패딩
-const MARGIN = 32;            // 카드 외부 여백
-const SECTION_GAP = 12;       // 섹션 간 여백
+const CARD_INNER_W = 520;
 
-const BG_COLOR = '#080600';
-const BORDER_COLOR = '#D4A020';
 const DIM_COLOR = '#8A6618';
-
-// ── 다채로운 색상 팔레트 ──
-const TITLE_COLOR = '#FFD060';        // 제목 — 밝은 금색
-const TITLE_HANJA_COLOR = '#CC8833';  // 한자 제목 — 어두운 금
-const INFO_NAME_COLOR = '#FFFFFF';    // 이름 — 흰색
-const INFO_DATE_COLOR = '#BBBBBB';    // 생년월일 — 연한 회색
-const ZODIAC_ART_COLOR = '#48B8A8';   // 동물 아트 — 청록
-const ZODIAC_LABEL_COLOR = '#66DDCC'; // 동물 이름줄 — 밝은 청록
-const WISDOM_TITLE_COLOR = '#CC88FF'; // 현자의 한마디 제목 — 보라
-const WISDOM_TEXT_COLOR = '#E8D8C0';  // 현자의 한마디 본문 — 아이보리
-const PILLAR_HEADER_COLOR = '#8A7848';// 기둥 헤더 — 갈색
-const SUMMARY_TITLE_COLOR = '#CC88FF';// 요약 섹션 제목 — 보라
-const SUMMARY_LABEL_COLOR = '#8A7848';// 요약 라벨 — 갈색
-const SINSAL_COLOR = '#FF8866';       // 신살 — 주황
-const FOOTER_COLOR = '#6A5828';       // 하단 — 어두운 갈색
-
-// 오행별 색상 (공유 상수에서 가져옴)
-const ELEMENT_COLORS = ELEMENT_HEX;
+const INFO_NAME_COLOR = '#FFFFFF';
+const INFO_DATE_COLOR = '#BBBBBB';
+const ZODIAC_ART_COLOR = '#48B8A8';
+const ZODIAC_LABEL_COLOR = '#66DDCC';
+const WISDOM_TITLE_COLOR = '#CC88FF';
+const WISDOM_TEXT_COLOR = '#E8D8C0';
+const PILLAR_HEADER_COLOR = '#8A7848';
+const SUMMARY_TITLE_COLOR = '#CC88FF';
+const SUMMARY_LABEL_COLOR = '#8A7848';
+const SINSAL_COLOR = '#FF8866';
 
 // 12간지 동물 이모지 맵
 const ANIMAL_EMOJI: Record<string, string> = {
@@ -47,7 +37,6 @@ const ANIMAL_EMOJI: Record<string, string> = {
 };
 
 const MAX_WISDOM_LINES = 8;
-const FONT_FAMILY = '"D2Coding", "D2 Coding", "Noto Sans Mono CJK KR", monospace';
 
 /** AI 캐시에서 현자의 한마디 추출 */
 export function extractWisdom(aiCache: Record<string, string>): string {
@@ -82,89 +71,6 @@ export function extractWisdom(aiCache: Record<string, string>): string {
     }
   }
   return '길은 이미 당신 안에 있습니다.';
-}
-
-// ── 렌더링 유틸 ──
-
-/** ctx.measureText 기반 텍스트 줄바꿈 */
-function wrapTextPx(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const paragraphs = text.split('\n');
-  const result: string[] = [];
-  for (const para of paragraphs) {
-    if (para.trim() === '') { result.push(''); continue; }
-    let current = '';
-    for (const ch of para) {
-      const test = current + ch;
-      if (ctx.measureText(test).width > maxWidth && current.length > 0) {
-        result.push(current);
-        current = ch;
-      } else {
-        current = test;
-      }
-    }
-    if (current) result.push(current);
-  }
-  return result;
-}
-
-/** 텍스트를 영역 중앙에 그리기 */
-function drawCentered(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  centerX: number,
-  y: number,
-  color: string,
-) {
-  const w = ctx.measureText(text).width;
-  ctx.fillStyle = color;
-  ctx.fillText(text, centerX - w / 2, y);
-}
-
-/** 텍스트를 왼쪽 정렬로 그리기 */
-function drawLeft(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  color: string,
-) {
-  ctx.fillStyle = color;
-  ctx.fillText(text, x, y);
-}
-
-/** 라벨 + 값 한 줄 그리기 (고정 valueX 정렬) */
-function drawLabelValue(
-  ctx: CanvasRenderingContext2D,
-  label: string,
-  value: string,
-  x: number,
-  valueX: number,
-  y: number,
-  labelColor: string,
-  valueColor: string,
-) {
-  drawLeft(ctx, label, x, y, labelColor);
-  drawLeft(ctx, value, valueX, y, valueColor);
-}
-
-/** 가로 구분선 그리기 */
-function drawHLine(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, width: number,
-  color: string, style: 'solid' | 'double' = 'solid',
-) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  if (style === 'double') {
-    ctx.beginPath();
-    ctx.moveTo(x, y - 1.5); ctx.lineTo(x + width, y - 1.5);
-    ctx.moveTo(x, y + 1.5); ctx.lineTo(x + width, y + 1.5);
-    ctx.stroke();
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(x, y); ctx.lineTo(x + width, y);
-    ctx.stroke();
-  }
 }
 
 /** Canvas에 카드 렌더링 후 PNG Blob 반환 */
@@ -243,40 +149,7 @@ export async function renderCardToPng(
   const cardW = CARD_W;
   const cardH = totalCardH;
 
-  // 외부 글로우 레이어 (더 넓고 부드러운 광원)
-  ctx.shadowColor = BORDER_COLOR;
-  ctx.shadowBlur = 28;
-  ctx.strokeStyle = BORDER_COLOR;
-  ctx.lineWidth = 1;
-  const R = 6; // 모서리 반경
-  ctx.beginPath();
-  ctx.moveTo(cardX + R, cardY);
-  ctx.lineTo(cardX + cardW - R, cardY);
-  ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + R);
-  ctx.lineTo(cardX + cardW, cardY + cardH - R);
-  ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - R, cardY + cardH);
-  ctx.lineTo(cardX + R, cardY + cardH);
-  ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - R);
-  ctx.lineTo(cardX, cardY + R);
-  ctx.quadraticCurveTo(cardX, cardY, cardX + R, cardY);
-  ctx.closePath();
-  ctx.stroke();
-  // 내부 밝은 테두리 선
-  ctx.shadowBlur = 6;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(cardX + R, cardY);
-  ctx.lineTo(cardX + cardW - R, cardY);
-  ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + R);
-  ctx.lineTo(cardX + cardW, cardY + cardH - R);
-  ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - R, cardY + cardH);
-  ctx.lineTo(cardX + R, cardY + cardH);
-  ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - R);
-  ctx.lineTo(cardX, cardY + R);
-  ctx.quadraticCurveTo(cardX, cardY, cardX + R, cardY);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  drawCardBorder(ctx, cardX, cardY, cardW, cardH, BORDER_COLOR);
 
   // ── 폰트 설정 ──
   ctx.font = `${FONT_SIZE}px ${FONT_FAMILY}`;
@@ -482,7 +355,7 @@ export async function downloadCardPng(
     const filename = `${name}_사주카드_${new Date().toISOString().slice(0, 10)}.png`;
     return downloadBlob(blob, filename);
   } catch (err) {
-    console.error('[사주카드] PNG 생성 실패:', err);
+    logger.error('cardExport', 'PNG 생성 실패', err);
     return false;
   }
 }

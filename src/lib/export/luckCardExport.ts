@@ -4,70 +4,22 @@
  */
 
 import { SajuResult } from '@/lib/saju/types';
-import { ELEMENT_NAMES, ELEMENT_HEX } from '@/lib/saju/constants';
+import { ELEMENT_NAMES } from '@/lib/saju/constants';
 import { getCurrentLuckInfo } from '@/lib/saju/helpers';
 import { extractWisdom } from './cardExport';
+import {
+  FONT_SIZE, LINE_HEIGHT, CARD_PAD_X, CARD_PAD_Y, MARGIN, SECTION_GAP,
+  BG_COLOR, BORDER_COLOR, TITLE_COLOR, TITLE_HANJA_COLOR, FOOTER_COLOR,
+  ELEMENT_COLORS, FONT_FAMILY,
+  wrapTextPx, drawCentered, drawLeft, drawHLine,
+} from './cardConstants';
 
-const FONT_SIZE = 16;
-const LINE_HEIGHT = 22;
-const CARD_PAD_X = 24;
-const CARD_PAD_Y = 16;
-const MARGIN = 32;
-const SECTION_GAP = 12;
-
-const BG_COLOR = '#080600';
-const BORDER_COLOR = '#D4A020';
-const TITLE_COLOR = '#FFD060';
-const TITLE_HANJA_COLOR = '#CC8833';
 const INFO_NAME_COLOR = '#FFFFFF';
 const INFO_DATE_COLOR = '#BBBBBB';
 const SECTION_TITLE_COLOR = '#CC88FF';
 const LABEL_COLOR = '#8A7848';
 const CURRENT_MARKER_COLOR = '#FF8866';
-const FOOTER_COLOR = '#6A5828';
 const WISDOM_COLOR = '#E8D8C0';
-
-const ELEMENT_COLORS = ELEMENT_HEX;
-const FONT_FAMILY = '"D2Coding", "D2 Coding", "Noto Sans Mono CJK KR", monospace';
-
-function drawCentered(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, color: string) {
-  const w = ctx.measureText(text).width;
-  ctx.fillStyle = color;
-  ctx.fillText(text, cx - w / 2, y);
-}
-
-function drawLeft(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.fillText(text, x, y);
-}
-
-function drawHLine(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, color: string) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(x, y - 1.5); ctx.lineTo(x + width, y - 1.5);
-  ctx.moveTo(x, y + 1.5); ctx.lineTo(x + width, y + 1.5);
-  ctx.stroke();
-}
-
-function wrapTextPx(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const result: string[] = [];
-  for (const para of text.split('\n')) {
-    if (para.trim() === '') { result.push(''); continue; }
-    let current = '';
-    for (const ch of para) {
-      const test = current + ch;
-      if (ctx.measureText(test).width > maxWidth && current.length > 0) {
-        result.push(current);
-        current = ch;
-      } else {
-        current = test;
-      }
-    }
-    if (current) result.push(current);
-  }
-  return result;
-}
 
 export async function renderLuckCardToPng(
   saju: SajuResult,

@@ -9,6 +9,8 @@ interface SharePageProps {
   params: Promise<{ token: string }>;
 }
 
+const SITE_URL = 'https://main.d2myeapn5r14dx.amplifyapp.com';
+
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const { token } = await params;
   const data = decodeShareToken(token);
@@ -17,9 +19,26 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   try {
     const saju = calculateFullSaju(buildBirthInfoFromToken(data));
     const summary = generateShareSummary(saju);
+    const title = `${summary.zodiacLabel} · ${summary.dayMasterTheme}`;
+    const description = `${summary.elementKeyword}의 기운 — "${summary.dayMasterMetaphor}" 나도 사주카드 받아보기`;
+    const url = `${SITE_URL}/share/${token}`;
+
     return {
-      title: `${summary.zodiacLabel} 사주카드 — 사주명리의 미궁`,
-      description: `${summary.elementKeyword}의 기운 — AI 사주명리의 미궁에서 나의 운명을 확인하세요`,
+      title,
+      description,
+      openGraph: {
+        type: 'article',
+        siteName: '사주명리의 미궁',
+        title,
+        description,
+        url,
+        locale: 'ko_KR',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
     };
   } catch {
     return { title: '사주명리의 미궁' };

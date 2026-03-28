@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
 const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
@@ -28,7 +28,6 @@ interface YearDrumProps {
 }
 
 export function YearDrum({ value, onChange, min = 1930, max = new Date().getFullYear() }: YearDrumProps) {
-  const touchStartY = useRef<number | null>(null);
   const [direction, setDirection] = useState<'up' | 'down' | null>(null);
   const animRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -41,27 +40,40 @@ export function YearDrum({ value, onChange, min = 1930, max = new Date().getFull
     animRef.current = setTimeout(() => setDirection(null), 200);
   }, [value, min, max, onChange]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0) changeYear(1);
-    if (e.deltaY < 0) changeYear(-1);
+  const drumRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = drumRef.current;
+    if (!el) return;
+    function handleWheel(e: WheelEvent) {
+      e.preventDefault();
+      if (e.deltaY > 0) changeYear(1);
+      if (e.deltaY < 0) changeYear(-1);
+    }
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
   }, [changeYear]);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
+  // Pointer Events — 마우스 + 터치 + 펜 통합
+  const pointerStartY = useRef<number | null>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    pointerStartY.current = e.clientY;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (touchStartY.current === null) return;
-    const deltaY = touchStartY.current - e.touches[0].clientY;
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (pointerStartY.current === null) return;
+    const deltaY = pointerStartY.current - e.clientY;
     if (Math.abs(deltaY) >= 30) {
       changeYear(deltaY > 0 ? 1 : -1);
-      touchStartY.current = e.touches[0].clientY;
+      pointerStartY.current = e.clientY;
     }
   }, [changeYear]);
 
-  const handleTouchEnd = useCallback(() => {
-    touchStartY.current = null;
+  const handlePointerUp = useCallback(() => {
+    pointerStartY.current = null;
   }, []);
 
   const prev2 = getGanji(value - 2);
@@ -80,12 +92,14 @@ export function YearDrum({ value, onChange, min = 1930, max = new Date().getFull
     <div className="flex flex-col items-center gap-4 w-full select-none">
       {/* Drum area */}
       <div
+        ref={drumRef}
         className="w-full flex flex-col items-center cursor-ns-resize overflow-hidden"
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ touchAction: 'none' }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onDragStart={(e) => e.preventDefault()}
+        style={{ touchAction: 'none', userSelect: 'none' }}
       >
         {/* -2 year (faintest) */}
         {value - 2 >= min && (

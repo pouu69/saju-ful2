@@ -169,17 +169,31 @@ token = base64url(생년월일+시간+성별+역법)  // 이름 제외, ~20자
 
 ### 공유 페이지 (`/share/[token]/page.tsx`)
 
-1. URL에서 token 추출 → base64 디코딩
-2. 사주 재계산 (`calculateFullSaju`)
-3. AI 호출 없이 카드만 렌더링 (읽기 전용)
-4. 이름 대신 "庚午年生 말띠의 사주카드"로 표시
-5. 하단: "나도 카드 받기 ✦" → `/` 로 이동
+1. URL에서 token 추출 → base64url 디코딩
+2. 사주 재계산 (`calculateFullSaju`) — 이름 없이 계산
+3. **AI 호출 없음** — 기존 fallback template(`src/lib/ai/templates.ts`) 사용
+4. 이름 대신 "庚午年生 말띠의 사주" 형식으로 표시
+5. 항목별 요약 카드로 구성 (전체 풀이 아님, 아래 참조)
+6. 하단: "나도 카드 받기 ✦" → `/` 로 이동 (바이럴 CTA)
+
+### 공유 페이지 표시 항목 (요약 형태)
+
+전체 AI 해석 대신, fallback template에서 항목별 핵심 1~2줄만 추출하여 카드 형태로 표시:
+
+| 섹션 | 표시 내용 | 출처 |
+|------|---------|------|
+| 🃏 사주 카드 | 오행 4기둥 컬러 그리드 + 띠 | `calculateFullSaju()` |
+| 🌿 오행 성향 | 주 오행 키워드 + 한 줄 설명 | `ELEMENT_PERSONALITY[dominant].keyword` |
+| ☯ 일간 성격 | 자연물 비유 + 핵심 테마 한 줄 | `DAY_MASTER_METAPHOR[dayMaster].theme` |
+| 🍀 오행 균형 | 강한 오행 / 부족한 오행 표시 | `fiveElements` 분포 |
+| 🔒 전체 풀이 잠금 | "AI 해석은 직접 받아야 볼 수 있어요" | CTA로 유도 |
+
+**핵심 UX 원칙**: 공유 페이지는 "티저"로 설계. 충분히 흥미롭되, 깊은 해석은 직접 받아야만 볼 수 있어 "나도 받기" 클릭을 자연스럽게 유도.
 
 **OG 태그** (SNS 공유 미리보기):
 ```html
-<meta property="og:title" content="庚午年生 사주카드" />
-<meta property="og:description" content="AI 사주명리의 미궁에서 나의 운명을 확인하세요" />
-<meta property="og:image" content="/api/og?token=..." />  <!-- 선택적 -->
+<meta property="og:title" content="庚午年生 말띠 사주카드" />
+<meta property="og:description" content="성장과 도전의 기운 — AI 사주명리의 미궁에서 나의 운명을 확인하세요" />
 ```
 
 ---

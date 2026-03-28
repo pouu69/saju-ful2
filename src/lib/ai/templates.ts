@@ -561,3 +561,38 @@ export function getTemplateInterpretation(type: string, saju: SajuResult, partne
       return '현자가 잠시 생각에 잠깁니다...';
   }
 }
+
+export interface ShareSummary {
+  elementKeyword: string;
+  elementDesc: string;
+  dayMasterTheme: string;
+  dayMasterMetaphor: string;
+  dominantElement: FiveElement;
+  deficientElement: FiveElement;
+  zodiacLabel: string;
+}
+
+export function generateShareSummary(saju: SajuResult): ShareSummary {
+  const dominant = saju.fiveElements.dominant;
+  const deficient = saju.fiveElements.deficient;
+  const dm = saju.dayMaster;
+
+  const personality = ELEMENT_PERSONALITY[dominant];
+  const metaphor = DAY_MASTER_METAPHOR[dm.korean] ?? {
+    metaphor: '알 수 없는 운명',
+    theme: '독특한 기운',
+  };
+
+  const animal = saju.yearPillar.branch.animal;
+  const zodiacLabel = `${saju.yearPillar.ganjiHanja}年生 ${animal}띠`;
+
+  return {
+    elementKeyword: personality.keyword,
+    elementDesc: personality.desc,
+    dayMasterTheme: metaphor.theme,
+    dayMasterMetaphor: metaphor.metaphor,
+    dominantElement: dominant,
+    deficientElement: deficient,
+    zodiacLabel,
+  };
+}

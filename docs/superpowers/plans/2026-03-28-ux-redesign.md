@@ -133,6 +133,45 @@ git commit -m "feat: add useToast hook for copy-link feedback"
 
 ---
 
+## Task 1c: 오행 색상 통합 (ELEMENT_HEX 업데이트)
+
+**Files:**
+- Modify: `src/lib/saju/constants.ts`
+
+기존 `ELEMENT_HEX`의 색상이 B2C 리디자인 팔레트와 다릅니다.
+기존 코드(`cardExport.ts`)가 `ELEMENT_HEX`를 참조하므로, 이 값만 바꾸면 카드/UI 전체에 자동 반영됩니다.
+
+- [ ] **Step 1: ELEMENT_HEX 색상 업데이트**
+
+`src/lib/saju/constants.ts`에서 `ELEMENT_HEX`를 다음으로 교체:
+
+```typescript
+export const ELEMENT_HEX: Record<FiveElement, string> = {
+  wood:  '#68d391',
+  fire:  '#fc8181',
+  earth: '#D4A020',
+  metal: '#e2e8f0',
+  water: '#76e4f7',
+};
+```
+
+- [ ] **Step 2: globals.css CSS 변수와 값이 동일한지 확인**
+
+```bash
+grep "element-" src/app/globals.css
+```
+
+CSS 변수 값이 `ELEMENT_HEX` 값과 일치해야 합니다.
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add src/lib/saju/constants.ts
+git commit -m "feat: update ELEMENT_HEX to B2C soft color palette"
+```
+
+---
+
 ## Task 2: Share Token 인코더/디코더
 
 **Files:**
@@ -1351,73 +1390,42 @@ git commit -m "feat: add envelope phase to result flow and share link button"
 
 ---
 
-## Task 10: 카드 오행 컬러 그리드 추가
+## Task 10: 카드 오행 컬러 배경 추가
 
 **Files:**
 - Modify: `src/lib/export/cardExport.ts`
 
-- [ ] **Step 1: 오행 색상 맵과 4기둥 그리드 그리기 함수 추가**
+기존 `cardExport.ts`에는 이미 섹션 5 (line 318~346)에서 4기둥을 오행 색상 텍스트로 표시합니다.
+색상은 `ELEMENT_COLORS = ELEMENT_HEX`에서 가져옵니다 (Task 1c에서 업데이트됨).
+여기서는 텍스트 뒤에 **반투명 색상 배경 사각형**을 추가하여 비주얼을 강화합니다.
 
-`src/lib/export/cardExport.ts`에서 오행 색상 맵을 파일 상단 상수로 추가:
+**새 상수/파일 추가 없음** — 기존 `ELEMENT_COLORS`를 그대로 사용.
 
-```typescript
-const ELEMENT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  wood:  { bg: 'rgba(104,211,145,0.15)', text: '#68d391', border: 'rgba(104,211,145,0.4)' },
-  fire:  { bg: 'rgba(252,129,129,0.15)', text: '#fc8181', border: 'rgba(252,129,129,0.4)' },
-  earth: { bg: 'rgba(212,160,32,0.15)',  text: '#D4A020', border: 'rgba(212,160,32,0.4)'  },
-  metal: { bg: 'rgba(226,232,240,0.15)', text: '#e2e8f0', border: 'rgba(226,232,240,0.4)' },
-  water: { bg: 'rgba(118,228,247,0.15)', text: '#76e4f7', border: 'rgba(118,228,247,0.4)' },
-};
-```
+- [ ] **Step 1: 섹션 5에 컬러 배경 사각형 삽입**
 
-그리고 `renderCardToPng` 함수 내부의 사주 기둥 그리기 섹션에서, 기존 천간/지지 텍스트 출력 이후에 오행 그리드 추가. 기둥 배열을 구성하는 부분을 찾아 4기둥 그리드를 그리는 코드 삽입:
+`src/lib/export/cardExport.ts`의 **line 321** (`const colW = cardW / colCount;`) 다음, **line 323** (헤더 행 `for` 루프 시작) 전에 아래 코드를 삽입:
 
 ```typescript
-// 오행 4기둥 컬러 그리드 (천간 기준)
-const pillars = [
-  { label: '년', pillar: sajuResult.yearPillar },
-  { label: '월', pillar: sajuResult.monthPillar },
-  { label: '일', pillar: sajuResult.dayPillar },
-  { label: '시', pillar: sajuResult.hourPillar },
-];
-
-const gridX = CARD_PADDING;
-const gridCellW = (CARD_INNER_W - 9) / 4; // 3px gaps
-let gridY = y; // y = current draw position
-
-pillars.forEach((p, i) => {
-  const cellX = gridX + i * (gridCellW + 3);
-  const colors = p.pillar ? ELEMENT_COLORS[p.pillar.stem.element] ?? ELEMENT_COLORS.earth : { bg: 'rgba(42,30,8,0.3)', text: '#3a2a08', border: 'rgba(42,30,8,0.5)' };
-
-  // Cell background
-  ctx.fillStyle = colors.bg;
-  ctx.fillRect(cellX, gridY, gridCellW, 52);
-
-  // Cell border
-  ctx.strokeStyle = colors.border;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(cellX + 0.5, gridY + 0.5, gridCellW - 1, 51);
-
-  // Hanja stem
-  ctx.fillStyle = colors.text;
-  ctx.font = `bold 16px ${FONT_FAMILY}`;
-  ctx.textAlign = 'center';
-  ctx.fillText(p.pillar?.stem.hanja ?? '?', cellX + gridCellW / 2, gridY + 20);
-
-  // Position label
-  ctx.fillStyle = '#555';
-  ctx.font = `10px ${FONT_FAMILY}`;
-  ctx.fillText(p.label, cellX + gridCellW / 2, gridY + 34);
-
-  // Element name
-  ctx.fillStyle = colors.text;
-  ctx.font = `10px ${FONT_FAMILY}`;
-  ctx.fillText(p.pillar?.stem.element ? { wood:'木',fire:'火',earth:'土',metal:'金',water:'水' }[p.pillar.stem.element] ?? '' : '', cellX + gridCellW / 2, gridY + 48);
-});
-y = gridY + 52 + 12;
+  // 오행 컬러 배경 (기둥별 반투명 사각형)
+  const colBgH = LINE_HEIGHT * 3; // header + 천간 + 지지 3행 높이
+  for (let i = 0; i < colCount; i++) {
+    const colLeft = cardX + colW * i;
+    const elColor = ELEMENT_COLORS[pillars[i].p.stem.element];
+    // 반투명 배경
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = elColor;
+    ctx.fillRect(colLeft + 2, curY, colW - 4, colBgH);
+    ctx.globalAlpha = 1.0;
+    // 테두리
+    ctx.strokeStyle = elColor;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(colLeft + 2, curY, colW - 4, colBgH);
+    ctx.globalAlpha = 1.0;
+  }
 ```
 
-**주의:** 위 코드는 `renderCardToPng` 함수 내에서 적절한 위치(사주 기둥 정보 출력 직후)에 삽입해야 합니다. 기존 코드에서 `y` 변수가 사용되는 위치를 확인하여 연속성을 유지하세요.
+**높이 변경 없음** — 배경 사각형은 기존 텍스트 영역 뒤에 그려지므로 `totalCardH` 수정 불필요.
 
 - [ ] **Step 2: 빌드 확인**
 
@@ -1429,7 +1437,7 @@ Expected: 빌드 성공 (타입 에러 없음)
 
 - [ ] **Step 3: 개발 서버에서 카드 비주얼 확인**
 
-결과 페이지에서 카드 공개 후 오행 컬러 그리드가 표시되는지 확인.
+결과 페이지에서 카드 공개 후 4기둥 뒤에 반투명 오행 색상 배경이 표시되는지 확인.
 
 - [ ] **Step 4: 커밋**
 
@@ -1545,7 +1553,8 @@ git commit -m "feat: add share link copy button to ShareButtons"
 import { decodeShareToken, type ShareTokenData } from '@/lib/share/tokenCodec';
 import { calculateFullSaju } from '@/lib/saju/calculator';
 import { generateShareSummary } from '@/lib/ai/templates';
-import type { BirthInfo } from '@/lib/saju/types';
+import { ELEMENT_HEX, ELEMENT_NAMES } from '@/lib/saju/constants';
+import type { BirthInfo, FiveElement } from '@/lib/saju/types';
 import type { Metadata } from 'next';
 
 interface SharePageProps {
@@ -1569,15 +1578,10 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   }
 }
 
-const ELEMENT_COLOR: Record<string, string> = {
-  wood: '#68d391', fire: '#fc8181', earth: '#D4A020', metal: '#e2e8f0', water: '#76e4f7',
-};
-const ELEMENT_LABEL: Record<string, { hanja: string; korean: string }> = {
-  wood: { hanja: '木', korean: '나무' },
-  fire: { hanja: '火', korean: '불' },
-  earth: { hanja: '土', korean: '흙' },
-  metal: { hanja: '金', korean: '쇠' },
-  water: { hanja: '水', korean: '물' },
+// ELEMENT_HEX, ELEMENT_NAMES는 constants.ts에서 import (DRY)
+// 사용자 친화적 한글명 (목→나무 등)만 로컬 정의
+const ELEMENT_KOREAN: Record<string, string> = {
+  wood: '나무', fire: '불', earth: '흙', metal: '쇠', water: '물',
 };
 const ANIMAL_EMOJI: Record<string, string> = {
   '쥐': '🐭', '소': '🐄', '호랑이': '🐯', '토끼': '🐰',
@@ -1636,8 +1640,8 @@ export default async function SharePage({ params }: SharePageProps) {
     { label: '시', pillar: saju.hourPillar },
   ];
 
-  const dominantColor = ELEMENT_COLOR[summary.dominantElement] ?? '#D4A020';
-  const deficientColor = ELEMENT_COLOR[summary.deficientElement] ?? '#8A6618';
+  const dominantColor = ELEMENT_HEX[summary.dominantElement];
+  const deficientColor = ELEMENT_HEX[summary.deficientElement];
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-10">
@@ -1662,8 +1666,8 @@ export default async function SharePage({ params }: SharePageProps) {
         {/* 4-pillar color grid */}
         <div className="grid grid-cols-4 gap-1 mb-3">
           {pillars.map(({ label, pillar }) => {
-            const el = pillar?.stem.element ?? 'earth';
-            const color = ELEMENT_COLOR[el] ?? '#D4A020';
+            const el: FiveElement = pillar?.stem.element ?? 'earth';
+            const color = ELEMENT_HEX[el];
             return (
               <div
                 key={label}
@@ -1676,7 +1680,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 <span className="font-mono text-sm font-bold" style={{ color }}>
                   {pillar?.stem.hanja ?? '?'}
                 </span>
-                <span className="font-mono text-[9px]" style={{ color }}>{ELEMENT_LABEL[el]?.hanja}</span>
+                <span className="font-mono text-[9px]" style={{ color }}>{ELEMENT_NAMES[el].hanja}</span>
                 <span className="font-mono text-[8px] text-[#555]">{label}</span>
               </div>
             );
@@ -1733,13 +1737,13 @@ export default async function SharePage({ params }: SharePageProps) {
             <div>
               <span className="text-[#8A6618]">강한 기운 </span>
               <span style={{ color: dominantColor }}>
-                {ELEMENT_LABEL[summary.dominantElement]?.hanja} {ELEMENT_LABEL[summary.dominantElement]?.korean}
+                {ELEMENT_NAMES[summary.dominantElement].hanja} {ELEMENT_KOREAN[summary.dominantElement]}
               </span>
             </div>
             <div>
               <span className="text-[#8A6618]">부족한 기운 </span>
               <span style={{ color: deficientColor }}>
-                {ELEMENT_LABEL[summary.deficientElement]?.hanja} {ELEMENT_LABEL[summary.deficientElement]?.korean}
+                {ELEMENT_NAMES[summary.deficientElement].hanja} {ELEMENT_KOREAN[summary.deficientElement]}
               </span>
             </div>
           </div>

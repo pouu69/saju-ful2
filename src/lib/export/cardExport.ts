@@ -320,6 +320,24 @@ export async function renderCardToPng(
   const colCount = pillars.length;
   const colW = cardW / colCount;
 
+  // 오행 컬러 배경 (기둥별 반투명 사각형)
+  const colBgH = LINE_HEIGHT * 3; // header + 천간 + 지지 3행 높이
+  for (let i = 0; i < colCount; i++) {
+    const colLeft = cardX + colW * i;
+    const elColor = ELEMENT_COLORS[pillars[i].p.stem.element];
+    // 반투명 배경
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = elColor;
+    ctx.fillRect(colLeft + 2, curY, colW - 4, colBgH);
+    ctx.globalAlpha = 1.0;
+    // 테두리
+    ctx.strokeStyle = elColor;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(colLeft + 2, curY, colW - 4, colBgH);
+    ctx.globalAlpha = 1.0;
+  }
+
   // 헤더 행
   for (let i = 0; i < colCount; i++) {
     const cx = cardX + colW * i + colW / 2;
